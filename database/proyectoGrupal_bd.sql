@@ -110,3 +110,30 @@ CREATE TABLE historial (
     FOREIGN KEY (ticket_id)  REFERENCES tickets(id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
+
+-- =====================================================================
+--  DATOS DE PRUEBA
+-- =====================================================================
+
+INSERT INTO roles (nombre) VALUES
+    ('administrador'), ('tecnico'), ('solicitante');
+
+-- Usuarios genericos (password de ejemplo: "123456")
+INSERT INTO usuarios (nombre, email, password, rol_id) VALUES
+    ('Usuario Administrador', 'admin@correo.com',   '123456', 1),
+    ('Usuario Tecnico',       'tecnico@correo.com', '123456', 2),
+    ('Usuario Solicitante',   'usuario@correo.com', '123456', 3);
+
+INSERT INTO categorias (nombre) VALUES
+    ('Hardware'), ('Software'), ('Redes'), ('Cuentas y accesos'), ('Otros');
+
+INSERT INTO prioridades (nombre, nivel) VALUES
+    ('Baja', 1), ('Media', 2), ('Alta', 3), ('Critica', 4);
+
+INSERT INTO estados (nombre) VALUES
+    ('Pendiente'), ('Asignado'), ('En proceso'), ('Resuelto'), ('Cerrado');
+
+INSERT INTO tickets (titulo, descripcion, categoria_id, prioridad_id, estado_id, solicitante_id, tecnico_id) VALUES
+    ('No enciende la computadora', 'La PC del laboratorio 3 no enciende desde la manana.', 1, 3, 1, 3, NULL),
+    ('Error al abrir el sistema contable', 'El sistema muestra error 500 al iniciar sesion.', 2, 4, 2, 3, 2),
+    ('Sin acceso a internet en oficina 204', 'No hay conexion de red cableada ni WiFi.', 3, 2, 3, 3, 2);

@@ -1,0 +1,43 @@
+# Dependencias
+/vendor/
+/node_modules/
+composer.phar
+
+# Configuración y credenciales
+.env
+.env.local
+config/database.php
+db_config.php
+*.local.php
+
+# Base de datos
+/backups/
+*.sql.gz
+*.dump
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+/logs/
+error_log
+
+# Caché y sesiones
+/cache/
+/sessions/
+/tmp/
+
+# Subidas
+/uploads/*
+!/uploads/.gitkeep
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -36,58 +36,43 @@ class TicketDAO
 
     public function createTicket(Ticket $ticket)
     {
-        try {
-            $query = "INSERT INTO tickets (id, titulo, descripcion, categoria_id, prioridad_id, estado_id, solicitante_id, tecnico_id) VALUES (0, ?, ?, ?, ?, ?, ?, ?)";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute(
-                [
-                    $ticket->getTitulo(),
-                    $ticket->getDescripcion(),
-                    $ticket->getCategoriaId(),
-                    $ticket->getPrioridadId(),
-                    $ticket->getEstadoId(),
-                    $ticket->getSolicitanteId(),
-                    $ticket->getTecnicoId(),
-                ]
-            );
-        } catch (PDOException $e) {
-            echo "Error al crear ticket: " . $e->getMessage();
-            return false;
-        }
+        $query = "INSERT INTO tickets (id, titulo, descripcion, categoria_id, prioridad_id, estado_id, solicitante_id, tecnico_id) VALUES (0, ?, ?, ?, ?, ?, ?, ?)";
+        $preparado = $this->conexion->prepare($query);
+        return $preparado->execute(
+            [
+                $ticket->getTitulo(),
+                $ticket->getDescripcion(),
+                $ticket->getCategoriaId(),
+                $ticket->getPrioridadId(),
+                $ticket->getEstadoId(),
+                $ticket->getSolicitanteId(),
+                $ticket->getTecnicoId(),
+            ]
+        );
     }
 
     public function updateTicket(Ticket $ticket)
     {
-        try {
-            $query = "UPDATE tickets SET titulo = ?, descripcion = ?, categoria_id = ?, prioridad_id = ?, estado_id = ?, solicitante_id = ?, tecnico_id = ? WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute(
-                [
-                    $ticket->getTitulo(),
-                    $ticket->getDescripcion(),
-                    $ticket->getCategoriaId(),
-                    $ticket->getPrioridadId(),
-                    $ticket->getEstadoId(),
-                    $ticket->getSolicitanteId(),
-                    $ticket->getTecnicoId(),
-                    $ticket->getId(),
-                ]
-            );
-        } catch (PDOException $e) {
-            echo "Error al actualizar ticket: " . $e->getMessage();
-            return false;
-        }
+        $query = "UPDATE tickets SET titulo = ?, descripcion = ?, categoria_id = ?, prioridad_id = ?, estado_id = ?, solicitante_id = ?, tecnico_id = ? WHERE id = ?";
+        $preparado = $this->conexion->prepare($query);
+        return $preparado->execute(
+            [
+                $ticket->getTitulo(),
+                $ticket->getDescripcion(),
+                $ticket->getCategoriaId(),
+                $ticket->getPrioridadId(),
+                $ticket->getEstadoId(),
+                $ticket->getSolicitanteId(),
+                $ticket->getTecnicoId(),
+                $ticket->getId(),
+            ]
+        );
     }
 
     public function deleteTicket($id)
     {
-        try {
-            $query = "DELETE FROM tickets WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute([$id]);
-        } catch (PDOException $e) {
-            echo "Error al eliminar ticket: " . $e->getMessage();
-            return false;
-        }
+        $query = "DELETE FROM tickets WHERE id = ?";
+        $preparado = $this->conexion->prepare($query);
+        return $preparado->execute([$id]);
     }
 }

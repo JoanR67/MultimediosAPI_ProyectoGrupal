@@ -38,7 +38,7 @@ class TicketDAO
     {
         $query = "INSERT INTO tickets (id, titulo, descripcion, categoria_id, prioridad_id, estado_id, solicitante_id, tecnico_id) VALUES (0, ?, ?, ?, ?, ?, ?, ?)";
         $preparado = $this->conexion->prepare($query);
-        return $preparado->execute(
+        $preparado->execute(
             [
                 $ticket->getTitulo(),
                 $ticket->getDescripcion(),
@@ -49,6 +49,7 @@ class TicketDAO
                 $ticket->getTecnicoId(),
             ]
         );
+        return (int) $this->conexion->lastInsertId();
     }
 
     public function updateTicket(Ticket $ticket)

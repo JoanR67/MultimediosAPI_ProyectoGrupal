@@ -383,10 +383,46 @@ class TicketController
 
     public function deleteTicket($id)
     {
-        $resultado = $this->dao->deleteTicket($id);
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        // El id debe ser numerico y mayor a 0
+        if (!is_numeric($id) || $id <= 0) {
+            http_response_code(400);
+            convertirJSON([
+                "code" => "400",
+                "error" => "El id debe ser un número mayor a 0"
+            ]);
+            return;
+        }
+
+        try {
+            // El ticket debe existir antes de eliminar
+            if (!$this->dao->getTicket($id)) {
+                http_response_code(404);
+                convertirJSON([
+                    "code" => "404",
+                    "error" => "Ticket no encontrado"
+                ]);
+                return;
+            }
+
+            $resultado = $this->dao->deleteTicket($id);
+            convertirJSON([
+                "code" => "200",
+                "success" => $resultado
+            ]);
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                http_response_code(409);
+                convertirJSON([
+                    "code" => "409",
+                    "error" => "No se puede eliminar: el ticket tiene comentarios, asignaciones o historial asociados"
+                ]);
+            } else {
+                http_response_code(500);
+                convertirJSON([
+                    "code" => "500",
+                    "error" => "Error al eliminar el ticket: " . $e->getMessage()
+                ]);
+            }
+        }
     }
 }

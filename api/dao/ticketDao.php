@@ -71,13 +71,8 @@ class TicketDAO
 
     public function deleteTicket($id)
     {
-        try {
-            $query = "DELETE FROM tickets WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute([$id]);
-        } catch (PDOException $e) {
-            echo "Error al eliminar ticket: " . $e->getMessage();
-            return false;
-        }
+        $query = "DELETE FROM tickets WHERE id = ?";
+        $preparado = $this->conexion->prepare($query);
+        return $preparado->execute([$id]);
     }
 }

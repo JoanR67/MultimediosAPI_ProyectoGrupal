@@ -192,10 +192,12 @@ class TicketController
 
         // 6. FK existentes: si un id no existe, MySQL lanza error de integridad
         try {
-            $resultado = $this->dao->createTicket($ticket);
+            $nuevoId = $this->dao->createTicket($ticket);
             convertirJSON([
                 "code" => "200",
-                "success" => $resultado
+                "success" => true,
+                "mensaje" => "Ticket creado correctamente",
+                "id" => $nuevoId
             ]);
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
@@ -362,7 +364,8 @@ class TicketController
             $resultado = $this->dao->updateTicket($ticket);
             convertirJSON([
                 "code" => "200",
-                "success" => $resultado
+                "success" => $resultado,
+                "mensaje" => "Ticket actualizado correctamente"
             ]);
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
@@ -407,7 +410,8 @@ class TicketController
             $resultado = $this->dao->deleteTicket($id);
             convertirJSON([
                 "code" => "200",
-                "success" => $resultado
+                "success" => $resultado,
+                "mensaje" => "Ticket eliminado correctamente"
             ]);
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {

@@ -14,12 +14,58 @@ class TicketController
 
     public function listaTickets()
     {
-        convertirJSON($this->dao->listaTickets());
+        try {
+            $tickets = $this->dao->listaTickets();
+
+            if (empty($tickets)) {
+                convertirJSON([
+                    "code" => "200",
+                    "mensaje" => "No hay tickets para mostrar"
+                ]);
+                return;
+            }
+
+            convertirJSON($tickets);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            convertirJSON([
+                "code" => "500",
+                "error" => "Error al obtener los tickets: " . $e->getMessage()
+            ]);
+        }
     }
 
     public function getTicket($id)
     {
-        convertirJSON($this->dao->getTicket($id));
+        if (!is_numeric($id) || $id <= 0) {
+            http_response_code(400);
+            convertirJSON([
+                "code" => "400",
+                "error" => "El id debe ser un numero mayor a 0"
+            ]);
+            return;
+        }
+
+        try {
+            $ticket = $this->dao->getTicket($id);
+
+            if (!$ticket) {
+                http_response_code(404);
+                convertirJSON([
+                    "code" => "404",
+                    "error" => "Ticket no encontrado"
+                ]);
+                return;
+            }
+
+            convertirJSON($ticket);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            convertirJSON([
+                "code" => "500",
+                "error" => "Error al obtener el ticket: " . $e->getMessage()
+            ]);
+        }
     }
 
     public function createTicket()

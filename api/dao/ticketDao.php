@@ -36,24 +36,19 @@ class TicketDAO
 
     public function createTicket(Ticket $ticket)
     {
-        try {
-            $query = "INSERT INTO tickets (id, titulo, descripcion, categoria_id, prioridad_id, estado_id, solicitante_id, tecnico_id) VALUES (0, ?, ?, ?, ?, ?, ?, ?)";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute(
-                [
-                    $ticket->getTitulo(),
-                    $ticket->getDescripcion(),
-                    $ticket->getCategoriaId(),
-                    $ticket->getPrioridadId(),
-                    $ticket->getEstadoId(),
-                    $ticket->getSolicitanteId(),
-                    $ticket->getTecnicoId(),
-                ]
-            );
-        } catch (PDOException $e) {
-            echo "Error al crear ticket: " . $e->getMessage();
-            return false;
-        }
+        $query = "INSERT INTO tickets (id, titulo, descripcion, categoria_id, prioridad_id, estado_id, solicitante_id, tecnico_id) VALUES (0, ?, ?, ?, ?, ?, ?, ?)";
+        $preparado = $this->conexion->prepare($query);
+        return $preparado->execute(
+            [
+                $ticket->getTitulo(),
+                $ticket->getDescripcion(),
+                $ticket->getCategoriaId(),
+                $ticket->getPrioridadId(),
+                $ticket->getEstadoId(),
+                $ticket->getSolicitanteId(),
+                $ticket->getTecnicoId(),
+            ]
+        );
     }
 
     public function updateTicket(Ticket $ticket)

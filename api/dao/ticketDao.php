@@ -53,25 +53,20 @@ class TicketDAO
 
     public function updateTicket(Ticket $ticket)
     {
-        try {
-            $query = "UPDATE tickets SET titulo = ?, descripcion = ?, categoria_id = ?, prioridad_id = ?, estado_id = ?, solicitante_id = ?, tecnico_id = ? WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute(
-                [
-                    $ticket->getTitulo(),
-                    $ticket->getDescripcion(),
-                    $ticket->getCategoriaId(),
-                    $ticket->getPrioridadId(),
-                    $ticket->getEstadoId(),
-                    $ticket->getSolicitanteId(),
-                    $ticket->getTecnicoId(),
-                    $ticket->getId(),
-                ]
-            );
-        } catch (PDOException $e) {
-            echo "Error al actualizar ticket: " . $e->getMessage();
-            return false;
-        }
+        $query = "UPDATE tickets SET titulo = ?, descripcion = ?, categoria_id = ?, prioridad_id = ?, estado_id = ?, solicitante_id = ?, tecnico_id = ? WHERE id = ?";
+        $preparado = $this->conexion->prepare($query);
+        return $preparado->execute(
+            [
+                $ticket->getTitulo(),
+                $ticket->getDescripcion(),
+                $ticket->getCategoriaId(),
+                $ticket->getPrioridadId(),
+                $ticket->getEstadoId(),
+                $ticket->getSolicitanteId(),
+                $ticket->getTecnicoId(),
+                $ticket->getId(),
+            ]
+        );
     }
 
     public function deleteTicket($id)

@@ -1,6 +1,6 @@
 <?php
-require_once "views/respuesta.php";
-require_once "dao/ticketDao.php";
+require_once __DIR__ . "/../views/respuesta.php";
+require_once __DIR__ . "/../dao/ticketDao.php";
 
 class TicketController
 {

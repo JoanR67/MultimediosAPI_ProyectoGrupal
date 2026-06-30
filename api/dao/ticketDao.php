@@ -1,6 +1,6 @@
 <?php
-require_once "config/Conexion.php";
-require_once "models/ticket.php";
+require_once __DIR__ . "/../config/Conexion.php";
+require_once __DIR__ . "/../models/ticket.php";
 
 class TicketDAO
 {

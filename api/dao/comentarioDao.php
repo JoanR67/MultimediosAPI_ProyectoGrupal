@@ -15,6 +15,7 @@ class ComentarioDAO
 
     public function __construct()
     {
+        // Crea conexion PDO para comentarios.
         $db = new Conexion();
         $this->conexion = $db->Conectar();
     }
@@ -24,17 +25,20 @@ class ComentarioDAO
      */
     public function listaComentarios($ticket_id = null)
     {
+        // JOIN permite devolver titulo del ticket y nombre del usuario.
         $sql = "SELECT c.*, t.titulo AS ticket, u.nombre AS usuario
                 FROM comentarios c
                 INNER JOIN tickets t ON c.ticket_id = t.id
                 INNER JOIN usuarios u ON c.usuario_id = u.id";
 
         if ($ticket_id != null) {
+            // Filtro opcional para comentarios de un ticket especifico.
             $sql .= " WHERE c.ticket_id = ?";
         }
 
         $sql .= " ORDER BY c.id";
 
+        // Prepara la consulta para ejecutar con o sin filtro.
         $preparado = $this->conexion->prepare($sql);
         $ticket_id != null ? $preparado->execute([$ticket_id]) : $preparado->execute();
 
@@ -46,6 +50,7 @@ class ComentarioDAO
      */
     public function getComentario($id)
     {
+        // Consulta un comentario puntual por id.
         $sql = "SELECT * FROM comentarios WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
@@ -59,6 +64,7 @@ class ComentarioDAO
     public function createComentario(Comentario $comentario)
     {
         try {
+            // Inserta comentario asociado a ticket y usuario existentes.
             $sql = "INSERT INTO comentarios (ticket_id, usuario_id, contenido) VALUES (?, ?, ?)";
             $preparado = $this->conexion->prepare($sql);
             $preparado->execute([
@@ -67,8 +73,10 @@ class ComentarioDAO
                 $comentario->getContenido()
             ]);
 
+            // Devuelve el id creado para usarlo en pruebas.
             return (int) $this->conexion->lastInsertId();
         } catch (PDOException $e) {
+            // Puede fallar por ticket_id o usuario_id inexistente.
             return false;
         }
     }
@@ -79,6 +87,7 @@ class ComentarioDAO
     public function updateComentario(Comentario $comentario)
     {
         try {
+            // Actualiza relacion y contenido del comentario.
             $sql = "UPDATE comentarios
                     SET ticket_id = ?, usuario_id = ?, contenido = ?
                     WHERE id = ?";
@@ -91,6 +100,7 @@ class ComentarioDAO
                 $comentario->getId()
             ]);
         } catch (PDOException $e) {
+            // El controlador transforma false en respuesta JSON.
             return false;
         }
     }
@@ -101,11 +111,13 @@ class ComentarioDAO
     public function deleteComentario($id)
     {
         try {
+            // Elimina comentario por id.
             $sql = "DELETE FROM comentarios WHERE id = ?";
             $preparado = $this->conexion->prepare($sql);
 
             return $preparado->execute([$id]);
         } catch (PDOException $e) {
+            // Se retorna false ante errores de BD.
             return false;
         }
     }

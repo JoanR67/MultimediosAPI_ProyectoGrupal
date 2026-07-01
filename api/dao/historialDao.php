@@ -15,6 +15,7 @@ class HistorialDAO
 
     public function __construct()
     {
+        // Crea conexion PDO para historial.
         $db = new Conexion();
         $this->conexion = $db->Conectar();
     }
@@ -24,17 +25,20 @@ class HistorialDAO
      */
     public function listaHistorial($ticket_id = null)
     {
+        // JOIN agrega informacion legible del ticket y usuario.
         $sql = "SELECT h.*, t.titulo AS ticket, u.nombre AS usuario
                 FROM historial h
                 INNER JOIN tickets t ON h.ticket_id = t.id
                 INNER JOIN usuarios u ON h.usuario_id = u.id";
 
         if ($ticket_id != null) {
+            // Filtro opcional para ver solo eventos de un ticket.
             $sql .= " WHERE h.ticket_id = ?";
         }
 
         $sql .= " ORDER BY h.id";
 
+        // Prepara la consulta para usar parametros cuando hay filtro.
         $preparado = $this->conexion->prepare($sql);
         $ticket_id != null ? $preparado->execute([$ticket_id]) : $preparado->execute();
 
@@ -46,6 +50,7 @@ class HistorialDAO
      */
     public function getHistorial($id)
     {
+        // Busca un registro historico por id.
         $sql = "SELECT * FROM historial WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
@@ -59,6 +64,7 @@ class HistorialDAO
     public function createHistorial(Historial $historial)
     {
         try {
+            // Inserta accion, valor anterior y nuevo para trazabilidad.
             $sql = "INSERT INTO historial (ticket_id, usuario_id, accion, valor_anterior, valor_nuevo)
                     VALUES (?, ?, ?, ?, ?)";
             $preparado = $this->conexion->prepare($sql);
@@ -70,8 +76,10 @@ class HistorialDAO
                 $historial->getValorNuevo()
             ]);
 
+            // Devuelve el id generado.
             return (int) $this->conexion->lastInsertId();
         } catch (PDOException $e) {
+            // Puede fallar si ticket_id o usuario_id no existen.
             return false;
         }
     }
@@ -82,6 +90,7 @@ class HistorialDAO
     public function updateHistorial(Historial $historial)
     {
         try {
+            // Permite corregir un registro historico manual.
             $sql = "UPDATE historial
                     SET ticket_id = ?, usuario_id = ?, accion = ?, valor_anterior = ?, valor_nuevo = ?
                     WHERE id = ?";
@@ -96,6 +105,7 @@ class HistorialDAO
                 $historial->getId()
             ]);
         } catch (PDOException $e) {
+            // El controlador decide el mensaje HTTP.
             return false;
         }
     }
@@ -106,11 +116,13 @@ class HistorialDAO
     public function deleteHistorial($id)
     {
         try {
+            // Elimina un registro historico por id.
             $sql = "DELETE FROM historial WHERE id = ?";
             $preparado = $this->conexion->prepare($sql);
 
             return $preparado->execute([$id]);
         } catch (PDOException $e) {
+            // False evita imprimir errores internos de MySQL.
             return false;
         }
     }

@@ -15,6 +15,7 @@ class AutenticacionController
 
     public function __construct()
     {
+        // Reusa UsuarioDAO para buscar el usuario por email.
         $this->dao = new UsuarioDAO();
     }
 
@@ -23,7 +24,9 @@ class AutenticacionController
      */
     public function login()
     {
+        // Lee credenciales desde JSON.
         $json = leerJsonBody();
+        // Valida formato antes de consultar usuarios.
         $errores = $this->validarLogin($json);
 
         if (!empty($errores)) {
@@ -31,7 +34,9 @@ class AutenticacionController
             return;
         }
 
+        // Normaliza email para comparar de forma consistente.
         $email = strtolower(trim($json["email"]));
+        // Busca usuario con password incluido.
         $usuario = $this->dao->buscarPorEmail($email);
 
         if (!$usuario) {
@@ -39,11 +44,13 @@ class AutenticacionController
             return;
         }
 
+        // Compara la contraseña enviada con el hash guardado.
         if (!password_verify($json["password"], $usuario["password"])) {
             responderError(401, "Credenciales incorrectas");
             return;
         }
 
+        // No se devuelve password en la respuesta.
         responderJSON([
             "success" => true,
             "mensaje" => "Login correcto",
@@ -63,9 +70,11 @@ class AutenticacionController
      */
     private function validarLogin($json)
     {
+        // Acumula errores de email y password.
         $errores = [];
 
         if (!is_array($json)) {
+            // Body mal formado.
             return ["El body debe ser JSON valido"];
         }
 

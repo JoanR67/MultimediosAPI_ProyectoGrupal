@@ -15,21 +15,25 @@ class TicketController
 
     public function __construct()
     {
+        // El DAO encapsula todas las consultas SQL de tickets.
         $this->dao = new TicketDAO();
     }
 
     public function listaTickets()
     {
+        // Lista todos los tickets sin filtros.
         responderJSON($this->dao->listaTickets());
     }
 
     public function getTicket($id)
     {
+        // Valida el id recibido por query string.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // Consulta el ticket solicitado.
         $ticket = $this->dao->getTicket($id);
 
         if (!$ticket) {
@@ -42,7 +46,9 @@ class TicketController
 
     public function createTicket()
     {
+        // Obtiene el JSON enviado por el cliente.
         $json = leerJsonBody();
+        // Valida campos obligatorios antes del INSERT.
         $errores = $this->validarTicket($json);
 
         if (!empty($errores)) {
@@ -50,6 +56,7 @@ class TicketController
             return;
         }
 
+        // Crea el registro y obtiene el id autogenerado.
         $id = $this->dao->createTicket($this->crearModelo($json));
 
         if (!$id) {
@@ -62,16 +69,19 @@ class TicketController
 
     public function updateTicket($id)
     {
+        // PUT necesita un id valido para identificar el ticket.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // Evita actualizar tickets inexistentes.
         if (!$this->dao->getTicket($id)) {
             responderError(404, "Ticket no encontrado");
             return;
         }
 
+        // Valida el body completo porque este endpoint reemplaza los datos principales.
         $json = leerJsonBody();
         $errores = $this->validarTicket($json);
 
@@ -80,6 +90,7 @@ class TicketController
             return;
         }
 
+        // Arma el modelo y le asigna el id recibido por query string.
         $ticket = $this->crearModelo($json);
         $ticket->setId((int) $id);
 
@@ -93,16 +104,19 @@ class TicketController
 
     public function deleteTicket($id)
     {
+        // DELETE requiere id entero positivo.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // Verifica existencia para devolver 404 claro.
         if (!$this->dao->getTicket($id)) {
             responderError(404, "Ticket no encontrado");
             return;
         }
 
+        // Si hay relaciones con comentarios/historial/asignaciones, el DAO devuelve false.
         if (!$this->dao->deleteTicket($id)) {
             responderError(409, "No se puede eliminar porque el ticket esta relacionado con otros datos");
             return;
@@ -118,9 +132,11 @@ class TicketController
      */
     private function validarTicket($json)
     {
+        // Acumula todos los errores de validacion del ticket.
         $errores = [];
 
         if (!is_array($json)) {
+            // Body mal formado.
             return ["El body debe ser JSON valido"];
         }
 
@@ -133,6 +149,7 @@ class TicketController
         }
 
         foreach (["categoria_id", "prioridad_id", "estado_id", "solicitante_id"] as $campo) {
+            // Estos campos son llaves foraneas obligatorias.
             if (!campoNumericoValido($json, $campo)) {
                 $errores[] = "El campo $campo es obligatorio y debe ser numerico";
             }
@@ -147,6 +164,7 @@ class TicketController
 
     private function crearModelo($json)
     {
+        // Convierte el arreglo JSON en objeto Ticket para el DAO.
         $ticket = new Ticket();
         $ticket->setTitulo(trim($json["titulo"]));
         $ticket->setDescripcion(trim($json["descripcion"]));

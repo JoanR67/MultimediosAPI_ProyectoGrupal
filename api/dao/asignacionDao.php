@@ -15,6 +15,7 @@ class AsignacionDAO
 
     public function __construct()
     {
+        // Abre conexion compartida por todas las consultas de asignacion.
         $db = new Conexion();
         $this->conexion = $db->Conectar();
     }
@@ -24,6 +25,7 @@ class AsignacionDAO
      */
     public function listaAsignaciones($ticket_id = null)
     {
+        // JOIN agrega nombres utiles para mostrar en la respuesta.
         $sql = "SELECT a.*, t.titulo AS ticket, u.nombre AS tecnico, admin.nombre AS asignador
                 FROM asignaciones a
                 INNER JOIN tickets t ON a.ticket_id = t.id
@@ -31,11 +33,13 @@ class AsignacionDAO
                 INNER JOIN usuarios admin ON a.asignado_por = admin.id";
 
         if ($ticket_id != null) {
+            // Filtro opcional para ver asignaciones de un ticket especifico.
             $sql .= " WHERE a.ticket_id = ?";
         }
 
         $sql .= " ORDER BY a.id";
 
+        // Se prepara aunque no haya filtro para mantener un estilo uniforme.
         $preparado = $this->conexion->prepare($sql);
         $ticket_id != null ? $preparado->execute([$ticket_id]) : $preparado->execute();
 
@@ -47,6 +51,7 @@ class AsignacionDAO
      */
     public function getAsignacion($id)
     {
+        // Busca una asignacion puntual.
         $sql = "SELECT * FROM asignaciones WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
@@ -60,13 +65,16 @@ class AsignacionDAO
     public function createAsignacion(Asignacion $asignacion)
     {
         try {
+            // Valida que el ticket exista antes de iniciar la transaccion.
             $ticket = $this->getTicket($asignacion->getTicketId());
             if (!$ticket) {
                 return false;
             }
 
+            // Transaccion: asignacion, ticket e historial deben quedar sincronizados.
             $this->conexion->beginTransaction();
 
+            // Crea la fila de asignacion.
             $sql = "INSERT INTO asignaciones (ticket_id, tecnico_id, asignado_por) VALUES (?, ?, ?)";
             $preparado = $this->conexion->prepare($sql);
             $preparado->execute([
@@ -76,7 +84,9 @@ class AsignacionDAO
             ]);
 
             $id = (int) $this->conexion->lastInsertId();
+            // Sincroniza tecnico actual del ticket.
             $this->actualizarTecnicoTicket($asignacion->getTicketId(), $asignacion->getTecnicoId());
+            // Registra trazabilidad automatica del cambio.
             $this->registrarHistorial(
                 $asignacion->getTicketId(),
                 $asignacion->getAsignadoPor(),
@@ -85,11 +95,13 @@ class AsignacionDAO
                 $asignacion->getTecnicoId()
             );
 
+            // Confirma todos los cambios de la transaccion.
             $this->conexion->commit();
 
             return $id;
         } catch (PDOException $e) {
             if ($this->conexion->inTransaction()) {
+                // Revierte si fallo cualquier paso de la asignacion.
                 $this->conexion->rollBack();
             }
 
@@ -103,18 +115,22 @@ class AsignacionDAO
     public function updateAsignacion(Asignacion $asignacion)
     {
         try {
+            // Guarda datos anteriores para registrar historial.
             $actual = $this->getAsignacion($asignacion->getId());
             if (!$actual) {
                 return false;
             }
 
+            // Confirma que el ticket nuevo exista.
             $ticket = $this->getTicket($asignacion->getTicketId());
             if (!$ticket) {
                 return false;
             }
 
+            // La actualizacion tambien sincroniza ticket e historial.
             $this->conexion->beginTransaction();
 
+            // Actualiza los datos principales de la asignacion.
             $sql = "UPDATE asignaciones
                     SET ticket_id = ?, tecnico_id = ?, asignado_por = ?
                     WHERE id = ?";
@@ -126,7 +142,9 @@ class AsignacionDAO
                 $asignacion->getId()
             ]);
 
+            // Refleja el tecnico asignado en la tabla tickets.
             $this->actualizarTecnicoTicket($asignacion->getTicketId(), $asignacion->getTecnicoId());
+            // Guarda el cambio para auditoria.
             $this->registrarHistorial(
                 $asignacion->getTicketId(),
                 $asignacion->getAsignadoPor(),
@@ -140,6 +158,7 @@ class AsignacionDAO
             return $resultado;
         } catch (PDOException $e) {
             if ($this->conexion->inTransaction()) {
+                // Evita dejar cambios parciales.
                 $this->conexion->rollBack();
             }
 
@@ -153,17 +172,21 @@ class AsignacionDAO
     public function deleteAsignacion($id)
     {
         try {
+            // Obtiene la asignacion antes de borrarla para poder escribir historial.
             $asignacion = $this->getAsignacion($id);
             if (!$asignacion) {
                 return false;
             }
 
+            // Borra y registra historial como una unidad.
             $this->conexion->beginTransaction();
 
+            // Elimina el registro de asignacion.
             $sql = "DELETE FROM asignaciones WHERE id = ?";
             $preparado = $this->conexion->prepare($sql);
             $resultado = $preparado->execute([$id]);
 
+            // Registra que la asignacion fue eliminada.
             $this->registrarHistorial(
                 $asignacion["ticket_id"],
                 $asignacion["asignado_por"],
@@ -177,6 +200,7 @@ class AsignacionDAO
             return $resultado;
         } catch (PDOException $e) {
             if ($this->conexion->inTransaction()) {
+                // Revierte si falla el DELETE o el historial.
                 $this->conexion->rollBack();
             }
 
@@ -189,6 +213,7 @@ class AsignacionDAO
      */
     private function getTicket($ticket_id)
     {
+        // Consulta auxiliar para validar existencia del ticket.
         $sql = "SELECT * FROM tickets WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$ticket_id]);
@@ -201,6 +226,7 @@ class AsignacionDAO
      */
     private function actualizarTecnicoTicket($ticket_id, $tecnico_id)
     {
+        // Estado 2 corresponde a "Asignado" en los datos iniciales.
         $sql = "UPDATE tickets SET tecnico_id = ?, estado_id = 2 WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
 
@@ -212,6 +238,7 @@ class AsignacionDAO
      */
     private function registrarHistorial($ticket_id, $usuario_id, $accion, $valor_anterior, $valor_nuevo)
     {
+        // Inserta una fila de trazabilidad para cambios de asignacion.
         $sql = "INSERT INTO historial (ticket_id, usuario_id, accion, valor_anterior, valor_nuevo)
                 VALUES (?, ?, ?, ?, ?)";
         $preparado = $this->conexion->prepare($sql);

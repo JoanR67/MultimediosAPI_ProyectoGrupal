@@ -15,21 +15,25 @@ class PrioridadController
 
     public function __construct()
     {
+        // DAO responsable de la tabla prioridades.
         $this->dao = new PrioridadDAO();
     }
 
     public function listaPrioridades()
     {
+        // Devuelve prioridades ordenadas por nivel.
         responderJSON($this->dao->listaPrioridades());
     }
 
     public function getPrioridad($id)
     {
+        // Valida id antes de consultar.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // Busca la prioridad solicitada.
         $prioridad = $this->dao->getPrioridad($id);
 
         if (!$prioridad) {
@@ -42,7 +46,9 @@ class PrioridadController
 
     public function createPrioridad()
     {
+        // Lee nombre y nivel desde JSON.
         $json = leerJsonBody();
+        // Valida ambos campos antes del INSERT.
         $errores = $this->validarPrioridad($json);
 
         if (!empty($errores)) {
@@ -50,8 +56,10 @@ class PrioridadController
             return;
         }
 
+        // Prepara el modelo Prioridad.
         $prioridad = $this->crearModelo($json);
 
+        // Puede fallar si el nombre ya existe.
         if (!$this->dao->createPrioridad($prioridad)) {
             responderError(409, "No se pudo crear la prioridad. Puede que ya exista.");
             return;
@@ -62,16 +70,19 @@ class PrioridadController
 
     public function updatePrioridad($id)
     {
+        // PUT requiere id valido.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // Verifica que exista antes de actualizar.
         if (!$this->dao->getPrioridad($id)) {
             responderError(404, "Prioridad no encontrada");
             return;
         }
 
+        // Lee y valida los nuevos datos.
         $json = leerJsonBody();
         $errores = $this->validarPrioridad($json);
 
@@ -80,6 +91,7 @@ class PrioridadController
             return;
         }
 
+        // Modelo con id actual y datos nuevos.
         $prioridad = $this->crearModelo($json);
         $prioridad->setId((int) $id);
 
@@ -93,16 +105,19 @@ class PrioridadController
 
     public function deletePrioridad($id)
     {
+        // DELETE requiere id valido.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // No se elimina una prioridad inexistente.
         if (!$this->dao->getPrioridad($id)) {
             responderError(404, "Prioridad no encontrada");
             return;
         }
 
+        // Puede fallar si la prioridad esta usada por tickets.
         if (!$this->dao->deletePrioridad($id)) {
             responderError(409, "No se puede eliminar porque la prioridad esta en uso");
             return;
@@ -118,9 +133,11 @@ class PrioridadController
      */
     private function validarPrioridad($json)
     {
+        // Acumula errores de nombre y nivel.
         $errores = [];
 
         if (!is_array($json)) {
+            // Body mal formado.
             return ["El body debe ser JSON valido"];
         }
 
@@ -137,6 +154,7 @@ class PrioridadController
 
     private function crearModelo($json)
     {
+        // Convierte JSON en objeto Prioridad.
         $prioridad = new Prioridad();
         $prioridad->setNombre(trim($json["nombre"]));
         $prioridad->setNivel((int) $json["nivel"]);

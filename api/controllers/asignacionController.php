@@ -15,26 +15,31 @@ class AsignacionController
 
     public function __construct()
     {
+        // DAO encargado de leer y escribir asignaciones.
         $this->dao = new AsignacionDAO();
     }
 
     public function listaAsignaciones($ticket_id = null)
     {
+        // ticket_id es opcional, pero si viene debe ser valido.
         if ($ticket_id !== null && !esIdValido($ticket_id)) {
             responderError(400, "El filtro ticket_id debe ser un entero positivo");
             return;
         }
 
+        // Lista todas las asignaciones o solo las de un ticket.
         responderJSON($this->dao->listaAsignaciones($ticket_id));
     }
 
     public function getAsignacion($id)
     {
+        // Valida id antes de buscar en BD.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // Busca la asignacion solicitada.
         $asignacion = $this->dao->getAsignacion($id);
 
         if (!$asignacion) {
@@ -47,7 +52,9 @@ class AsignacionController
 
     public function createAsignacion()
     {
+        // Lee los ids enviados en JSON.
         $json = leerJsonBody();
+        // Valida ticket, tecnico y usuario asignador.
         $errores = $this->validarAsignacion($json);
 
         if (!empty($errores)) {
@@ -55,6 +62,7 @@ class AsignacionController
             return;
         }
 
+        // Crea asignacion y actualiza el tecnico del ticket desde el DAO.
         $id = $this->dao->createAsignacion($this->crearModelo($json));
 
         if (!$id) {
@@ -67,16 +75,19 @@ class AsignacionController
 
     public function updateAsignacion($id)
     {
+        // PUT necesita identificar la asignacion.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // Verifica existencia para responder 404 si aplica.
         if (!$this->dao->getAsignacion($id)) {
             responderError(404, "Asignacion no encontrada");
             return;
         }
 
+        // Lee y valida los nuevos datos.
         $json = leerJsonBody();
         $errores = $this->validarAsignacion($json);
 
@@ -85,6 +96,7 @@ class AsignacionController
             return;
         }
 
+        // Construye el modelo con el id de la URL.
         $asignacion = $this->crearModelo($json);
         $asignacion->setId((int) $id);
 
@@ -98,16 +110,19 @@ class AsignacionController
 
     public function deleteAsignacion($id)
     {
+        // DELETE necesita id valido.
         if (!esIdValido($id)) {
             responderError(400, "ID invalido");
             return;
         }
 
+        // No se elimina una asignacion inexistente.
         if (!$this->dao->getAsignacion($id)) {
             responderError(404, "Asignacion no encontrada");
             return;
         }
 
+        // El DAO tambien registra historial de eliminacion.
         if (!$this->dao->deleteAsignacion($id)) {
             responderError(400, "No se pudo eliminar la asignacion");
             return;
@@ -123,9 +138,11 @@ class AsignacionController
      */
     private function validarAsignacion($json)
     {
+        // Junta errores de todos los campos requeridos.
         $errores = [];
 
         if (!is_array($json)) {
+            // Body mal formado.
             return ["El body debe ser JSON valido"];
         }
 
@@ -140,6 +157,7 @@ class AsignacionController
 
     private function crearModelo($json)
     {
+        // Convierte el JSON en objeto Asignacion para el DAO.
         $asignacion = new Asignacion();
         $asignacion->setTicketId((int) $json["ticket_id"]);
         $asignacion->setTecnicoId((int) $json["tecnico_id"]);

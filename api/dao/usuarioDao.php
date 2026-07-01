@@ -17,6 +17,7 @@ class UsuarioDAO
 
     public function __construct()
     {
+        // Abre una conexion PDO reutilizada por todos los metodos del DAO.
         $db = new Conexion();
         $this->conexion = $db->Conectar();
     }
@@ -26,6 +27,7 @@ class UsuarioDAO
      */
     public function listaUsuarios()
     {
+        // No se selecciona password por seguridad.
         $sql = "SELECT id, nombre, email, rol_id, creado_en FROM usuarios ORDER BY id";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute();
@@ -38,6 +40,7 @@ class UsuarioDAO
      */
     public function getUsuario($id)
     {
+        // Consulta parametrizada para evitar inyeccion SQL.
         $sql = "SELECT id, nombre, email, rol_id, creado_en FROM usuarios WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
@@ -50,6 +53,7 @@ class UsuarioDAO
      */
     public function buscarPorEmail($email)
     {
+        // Login necesita password, por eso aqui se consulta el registro completo.
         $sql = "SELECT * FROM usuarios WHERE email = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$email]);
@@ -65,6 +69,7 @@ class UsuarioDAO
      */
     public function buscarEmailEnOtroUsuario($email, $id)
     {
+        // Excluye el id actual para permitir conservar el mismo correo al editar.
         $sql = "SELECT id, nombre, email FROM usuarios WHERE email = ? AND id <> ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$email, $id]);
@@ -78,6 +83,7 @@ class UsuarioDAO
     public function createUsuario(Usuario $usuario)
     {
         try {
+            // Inserta usando placeholders para proteger los datos recibidos.
             $sql = "INSERT INTO usuarios (nombre, email, password, rol_id) VALUES (?, ?, ?, ?)";
             $preparado = $this->conexion->prepare($sql);
 
@@ -88,6 +94,7 @@ class UsuarioDAO
                 $usuario->getRolId()
             ]);
         } catch (PDOException $e) {
+            // El controlador traduce false a respuesta JSON controlada.
             return false;
         }
     }
@@ -98,6 +105,7 @@ class UsuarioDAO
     public function updateUsuario(Usuario $usuario)
     {
         try {
+            // Actualiza solo los campos editables desde este endpoint.
             $sql = "UPDATE usuarios SET nombre = ?, email = ?, rol_id = ? WHERE id = ?";
             $preparado = $this->conexion->prepare($sql);
 
@@ -108,6 +116,7 @@ class UsuarioDAO
                 $usuario->getId()
             ]);
         } catch (PDOException $e) {
+            // Puede fallar por email duplicado o rol inexistente.
             return false;
         }
     }
@@ -118,11 +127,13 @@ class UsuarioDAO
     public function deleteUsuario($id)
     {
         try {
+            // MySQL impedira eliminar si hay relaciones activas.
             $sql = "DELETE FROM usuarios WHERE id = ?";
             $preparado = $this->conexion->prepare($sql);
 
             return $preparado->execute([$id]);
         } catch (PDOException $e) {
+            // Se retorna false para que el controlador responda 409.
             return false;
         }
     }

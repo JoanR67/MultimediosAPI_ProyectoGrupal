@@ -16,8 +16,13 @@
 --  NOTA: no hay que crear la base a mano; el script ya la crea solo.
 -- =====================================================================
 
+-- Reinicia la base para poder importar el script varias veces durante pruebas.
 DROP DATABASE IF EXISTS multimedios_tickets;
+
+-- Crea la base con utf8mb4 para soportar texto amplio en titulos, comentarios y descripciones.
 CREATE DATABASE multimedios_tickets CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Selecciona la base recien creada para ejecutar todas las tablas e inserts siguientes.
 USE multimedios_tickets;
 
 -- Roles de usuario
@@ -57,6 +62,7 @@ CREATE TABLE estados (
 );
 
 -- Tabla principal: tickets
+-- Relaciona la solicitud con categoria, prioridad, estado, solicitante y tecnico asignado.
 CREATE TABLE tickets (
     id                  INT AUTO_INCREMENT PRIMARY KEY,
     titulo              VARCHAR(150) NOT NULL,
@@ -88,6 +94,7 @@ CREATE TABLE asignaciones (
 );
 
 -- Comentarios y seguimiento del ticket
+-- Guarda mensajes escritos por usuarios para documentar el avance del caso.
 CREATE TABLE comentarios (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     ticket_id  INT NOT NULL,
@@ -99,6 +106,7 @@ CREATE TABLE comentarios (
 );
 
 -- Historial de cambios del ticket (estados, asignaciones, etc.)
+-- Mantiene trazabilidad de acciones importantes realizadas sobre cada ticket.
 CREATE TABLE historial (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     ticket_id       INT NOT NULL,
@@ -119,6 +127,7 @@ INSERT INTO roles (nombre) VALUES
     ('administrador'), ('tecnico'), ('solicitante');
 
 -- Usuarios genericos (password de ejemplo: "123456")
+-- Las contrasenas se almacenan como hash porque la API valida login con password_verify.
 INSERT INTO usuarios (nombre, email, password, rol_id) VALUES
     ('Usuario Administrador', 'admin@correo.com',   '$2y$10$zHYv1rBtBMYh1UWZzxrJc.6ZOvbxoLIKVEWnsvnc42D6i5NNYa50W', 1),
     ('Usuario Tecnico',       'tecnico@correo.com', '$2y$10$kkIH4jvQptH0o1eiOfM.Ae9qfgTL7KE5I52KMYI1Wzjl6WUtQr54C', 2),
@@ -139,13 +148,16 @@ INSERT INTO tickets (titulo, descripcion, categoria_id, prioridad_id, estado_id,
     ('Sin acceso a internet en oficina 204', 'No hay conexion de red cableada ni WiFi.', 3, 2, 3, 3, 2);
 
 -- Asignacion inicial de ejemplo
+-- Permite probar GET de asignaciones y el historial asociado sin crear datos manualmente.
 INSERT INTO asignaciones (ticket_id, tecnico_id, asignado_por) VALUES
     (2, 2, 1);
 
 -- Comentario inicial de ejemplo
+-- Permite probar GET de comentarios desde Postman apenas se importa la base.
 INSERT INTO comentarios (ticket_id, usuario_id, contenido) VALUES
     (2, 2, 'Se revisara el error reportado en el sistema contable.');
 
 -- Historial inicial de ejemplo
+-- Deja evidencia de una accion inicial para probar el modulo de historial.
 INSERT INTO historial (ticket_id, usuario_id, accion, valor_anterior, valor_nuevo) VALUES
     (2, 1, 'Asignacion inicial de tecnico', NULL, '2');

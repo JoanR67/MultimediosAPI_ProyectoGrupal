@@ -25,8 +25,10 @@ class Conexion
      */
     public function __construct()
     {
+        // Permite configurar la BD sin tocar codigo fuente.
         $this->loadEnv(__DIR__ . '/../../.env');
 
+        // Cada valor tiene fallback para funcionar en XAMPP local.
         $this->host = $this->env('DB_HOST', 'localhost');
         $this->port = $this->env('DB_PORT', '3306');
         $this->dbname = $this->env('DB_NAME', 'multimedios_tickets');
@@ -43,12 +45,15 @@ class Conexion
     public function Conectar()
     {
         try {
+            // El DSN concentra host, puerto, base y charset para PDO.
             $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbname};charset={$this->charset}";
             $conexion = new PDO($dsn, $this->user, $this->password);
+            // Las excepciones permiten manejar errores SQL desde catch.
             $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             return $conexion;
         } catch (PDOException $th) {
+            // La conexion es requisito de toda la API, por eso se detiene la ejecucion.
             http_response_code(500);
             die(json_encode([
                 "error" => "No se pudo conectar a la base de datos",
@@ -65,9 +70,11 @@ class Conexion
     private function loadEnv($path)
     {
         if (!file_exists($path)) {
+            // Si no hay .env, se usaran los valores por defecto.
             return;
         }
 
+        // parse_ini_file lee archivos KEY=VALUE simples como nuestro .env.
         $vars = parse_ini_file($path, false, INI_SCANNER_RAW);
         if ($vars === false) {
             return;
@@ -75,6 +82,7 @@ class Conexion
 
         foreach ($vars as $key => $value) {
             if (getenv($key) === false) {
+                // Registra la variable en los lugares comunes de PHP.
                 putenv("$key=$value");
                 $_ENV[$key] = $value;
                 $_SERVER[$key] = $value;
@@ -91,9 +99,11 @@ class Conexion
      */
     private function env($key, $default = null)
     {
+        // getenv devuelve false cuando la variable no existe.
         $value = getenv($key);
 
         if ($value === false) {
+            // Fallback seguro para entorno local.
             return $default;
         }
 

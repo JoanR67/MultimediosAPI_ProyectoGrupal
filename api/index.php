@@ -15,10 +15,13 @@
  * - /?recurso=historial
  */
 
+// Muestra errores durante desarrollo local para detectar fallas rapido.
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Todas las rutas de esta API responden JSON.
 header('Content-Type: application/json');
+// Carga helpers de respuesta antes de resolver cualquier ruta.
 require_once __DIR__ . '/views/respuesta.php';
 
 /**
@@ -28,8 +31,10 @@ require_once __DIR__ . '/views/respuesta.php';
  *
  * Por compatibilidad, si no se envia `recurso`, se usa `tickets`.
  */
+// Si no se especifica recurso, se mantiene compatibilidad usando tickets.
 $recurso = isset($_GET['recurso']) ? $_GET['recurso'] : 'tickets';
 
+// Relaciona cada valor de `recurso` con su archivo de rutas.
 $rutas = [
     'tickets' => __DIR__ . '/routes/api.php',
     'usuarios' => __DIR__ . '/routes/usuarios.php',
@@ -44,8 +49,10 @@ $rutas = [
 ];
 
 if (!isset($rutas[$recurso])) {
+    // Evita incluir archivos inexistentes cuando el recurso no esta registrado.
     responderError(404, "Recurso no encontrado");
     exit;
 }
 
+// Carga la ruta solicitada para que ella decida por metodo HTTP.
 require_once $rutas[$recurso];

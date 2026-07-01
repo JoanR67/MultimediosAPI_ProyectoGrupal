@@ -15,12 +15,14 @@ class CategoriaDAO
 
     public function __construct()
     {
+        // Crea conexion PDO para categorias.
         $db = new Conexion();
         $this->conexion = $db->Conectar();
     }
 
     public function listaCategorias()
     {
+        // Lista catalogo completo ordenado por id.
         $sql = "SELECT * FROM categorias ORDER BY id";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute();
@@ -30,6 +32,7 @@ class CategoriaDAO
 
     public function getCategoria($id)
     {
+        // Busca una categoria especifica.
         $sql = "SELECT * FROM categorias WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
@@ -40,11 +43,13 @@ class CategoriaDAO
     public function createCategoria(Categoria $categoria)
     {
         try {
+            // Inserta nombre unico de categoria.
             $sql = "INSERT INTO categorias (nombre) VALUES (?)";
             $preparado = $this->conexion->prepare($sql);
 
             return $preparado->execute([$categoria->getNombre()]);
         } catch (PDOException $e) {
+            // Puede fallar por nombre duplicado.
             return false;
         }
     }
@@ -52,11 +57,13 @@ class CategoriaDAO
     public function updateCategoria(Categoria $categoria)
     {
         try {
+            // Actualiza el nombre de la categoria.
             $sql = "UPDATE categorias SET nombre = ? WHERE id = ?";
             $preparado = $this->conexion->prepare($sql);
 
             return $preparado->execute([$categoria->getNombre(), $categoria->getId()]);
         } catch (PDOException $e) {
+            // Puede fallar por nombre duplicado.
             return false;
         }
     }
@@ -64,11 +71,13 @@ class CategoriaDAO
     public function deleteCategoria($id)
     {
         try {
+            // MySQL bloquea el borrado si hay tickets usando la categoria.
             $sql = "DELETE FROM categorias WHERE id = ?";
             $preparado = $this->conexion->prepare($sql);
 
             return $preparado->execute([$id]);
         } catch (PDOException $e) {
+            // El controlador responde 409.
             return false;
         }
     }

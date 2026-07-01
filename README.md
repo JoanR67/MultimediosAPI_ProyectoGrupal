@@ -262,7 +262,117 @@ Eliminar:
 DELETE http://127.0.0.1:8000/?recurso=historial&id=1
 ```
 
-## 8. Documentacion del codigo
+### 7.5 Usuarios
+
+Listar:
+
+```http
+GET http://127.0.0.1:8000/?recurso=usuarios
+```
+
+Obtener por id:
+
+```http
+GET http://127.0.0.1:8000/?recurso=usuarios&id=1
+```
+
+Crear:
+
+```http
+POST http://127.0.0.1:8000/?recurso=usuarios
+Content-Type: application/json
+```
+
+```json
+{
+  "nombre": "Nuevo Usuario",
+  "email": "nuevo@correo.com",
+  "password": "123456",
+  "rol_id": 3
+}
+```
+
+Actualizar:
+
+```http
+PUT http://127.0.0.1:8000/?recurso=usuarios&id=1
+Content-Type: application/json
+```
+
+```json
+{
+  "nombre": "Usuario Actualizado",
+  "email": "actualizado@correo.com",
+  "rol_id": 3
+}
+```
+
+Nota: al actualizar un usuario, el correo puede mantenerse igual para ese mismo usuario. Si se intenta usar el correo de otro usuario, la API responde `409 Conflict`.
+
+Eliminar:
+
+```http
+DELETE http://127.0.0.1:8000/?recurso=usuarios&id=1
+```
+
+### 7.6 Login
+
+```http
+POST http://127.0.0.1:8000/?recurso=login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "tecnico@correo.com",
+  "password": "123456"
+}
+```
+
+## 8. Formato de respuestas y errores
+
+Las respuestas de exito usan este formato:
+
+```json
+{
+  "success": true,
+  "mensaje": "Operacion realizada correctamente"
+}
+```
+
+Cuando se crea un registro, tambien se puede devolver el `id`:
+
+```json
+{
+  "success": true,
+  "mensaje": "Ticket creado correctamente",
+  "id": 10
+}
+```
+
+Las respuestas de error usan este formato:
+
+```json
+{
+  "success": false,
+  "error": "Datos invalidos",
+  "detalles": [
+    "El campo email debe ser un correo valido"
+  ]
+}
+```
+
+Codigos HTTP usados:
+
+- `200`: consulta, actualizacion o eliminacion correcta.
+- `201`: registro creado correctamente.
+- `400`: datos invalidos o JSON incorrecto.
+- `401`: credenciales incorrectas.
+- `404`: recurso no encontrado.
+- `409`: conflicto, por ejemplo correo duplicado o registro en uso.
+- `405`: metodo HTTP no permitido.
+
+## 9. Documentacion del codigo
 
 Los archivos principales usan secciones con este formato:
 
@@ -281,7 +391,7 @@ Tambien se agregaron comentarios tipo DocBlock para explicar:
 - Validaciones principales.
 - Uso de cada archivo de rutas.
 
-## 9. Coleccion Postman
+## 10. Coleccion Postman
 
 La coleccion de pruebas esta en:
 

@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/../controllers/autenticacionController.php';
 
+/**
+ * ============================================================
+ * SECTION: Ruta de login
+ * ============================================================
+ */
+
 $controlador = new AutenticacionController();
 $metodo = $_SERVER['REQUEST_METHOD'];
 
@@ -10,6 +16,5 @@ switch ($metodo) {
         break;
 
     default:
-        http_response_code(405);
-        echo json_encode(["error" => "Opcion no permitida"]);
+        responderError(405, "Metodo no permitido");
 }

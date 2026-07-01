@@ -1,17 +1,19 @@
 <?php
 require_once __DIR__ . '/../controllers/prioridadController.php';
 
+/**
+ * ============================================================
+ * SECTION: Rutas de prioridades
+ * ============================================================
+ */
+
 $controlador = new PrioridadController();
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 
 switch ($metodo) {
     case 'GET':
-        if ($id != null) {
-            $controlador->getPrioridad($id);
-        } else {
-            $controlador->listaPrioridades();
-        }
+        $id != null ? $controlador->getPrioridad($id) : $controlador->listaPrioridades();
         break;
 
     case 'POST':
@@ -27,6 +29,5 @@ switch ($metodo) {
         break;
 
     default:
-        http_response_code(405);
-        echo json_encode(["error" => "Opcion no permitida"]);
+        responderError(405, "Metodo no permitido");
 }

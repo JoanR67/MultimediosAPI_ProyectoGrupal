@@ -1,10 +1,20 @@
 <?php
 
+/**
+ * ============================================================
+ * SECTION: Modelo Estado
+ * ============================================================
+ *
+ * Representa la tabla `estados`.
+ */
 class Estado
 {
     private $id;
     private $nombre;
 
+    /**
+     * Crea un estado con valores opcionales.
+     */
     public function __construct($id = null, $nombre = null)
     {
         $this->id = $id;

@@ -18,151 +18,131 @@ class TicketController
         $this->dao = new TicketDAO();
     }
 
-    /**
-     * Lista todos los tickets registrados.
-     */
     public function listaTickets()
     {
-        convertirJSON($this->dao->listaTickets());
+        responderJSON($this->dao->listaTickets());
     }
 
-    /**
-     * Devuelve un ticket por id.
-     */
     public function getTicket($id)
     {
-        if (!$this->idValido($id)) {
-            $this->respuestaError(400, "ID invalido");
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         $ticket = $this->dao->getTicket($id);
 
         if (!$ticket) {
-            $this->respuestaError(404, "Ticket no encontrado");
+            responderError(404, "Ticket no encontrado");
             return;
         }
 
-        convertirJSON($ticket);
+        responderJSON($ticket);
     }
 
-    /**
-     * Crea un ticket nuevo.
-     */
     public function createTicket()
     {
-        $json = $this->jsonBody();
+        $json = leerJsonBody();
+        $errores = $this->validarTicket($json);
 
-        if (!$this->datosValidos($json)) {
-            $this->respuestaError(400, "Debe enviar todos los datos obligatorios del ticket");
+        if (!empty($errores)) {
+            responderError(400, "Datos invalidos", $errores);
             return;
         }
 
         $id = $this->dao->createTicket($this->crearModelo($json));
 
         if (!$id) {
-            $this->respuestaError(400, "No se pudo crear el ticket. Revise los ids enviados.");
+            responderError(400, "No se pudo crear el ticket. Revise los ids enviados.");
             return;
         }
 
-        http_response_code(201);
-        convertirJSON([
-            "success" => true,
-            "mensaje" => "Ticket creado correctamente",
-            "id" => $id
-        ]);
+        responderExito("Ticket creado correctamente", ["id" => $id], 201);
     }
 
-    /**
-     * Actualiza un ticket existente.
-     */
     public function updateTicket($id)
     {
-        if (!$this->idValido($id)) {
-            $this->respuestaError(400, "ID invalido");
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         if (!$this->dao->getTicket($id)) {
-            $this->respuestaError(404, "Ticket no encontrado");
+            responderError(404, "Ticket no encontrado");
             return;
         }
 
-        $json = $this->jsonBody();
+        $json = leerJsonBody();
+        $errores = $this->validarTicket($json);
 
-        if (!$this->datosValidos($json)) {
-            $this->respuestaError(400, "Debe enviar todos los datos obligatorios del ticket");
+        if (!empty($errores)) {
+            responderError(400, "Datos invalidos", $errores);
             return;
         }
 
         $ticket = $this->crearModelo($json);
-        $ticket->setId($id);
-        $resultado = $this->dao->updateTicket($ticket);
+        $ticket->setId((int) $id);
 
-        if (!$resultado) {
-            $this->respuestaError(400, "No se pudo actualizar el ticket");
+        if (!$this->dao->updateTicket($ticket)) {
+            responderError(400, "No se pudo actualizar el ticket. Revise los ids enviados.");
             return;
         }
 
-        convertirJSON([
-            "success" => true,
-            "mensaje" => "Ticket actualizado correctamente"
-        ]);
+        responderExito("Ticket actualizado correctamente");
     }
 
-    /**
-     * Elimina un ticket por id.
-     */
     public function deleteTicket($id)
     {
-        if (!$this->idValido($id)) {
-            $this->respuestaError(400, "ID invalido");
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         if (!$this->dao->getTicket($id)) {
-            $this->respuestaError(404, "Ticket no encontrado");
+            responderError(404, "Ticket no encontrado");
             return;
         }
 
-        $resultado = $this->dao->deleteTicket($id);
-
-        if (!$resultado) {
-            $this->respuestaError(409, "No se puede eliminar porque el ticket esta relacionado con otros datos");
+        if (!$this->dao->deleteTicket($id)) {
+            responderError(409, "No se puede eliminar porque el ticket esta relacionado con otros datos");
             return;
         }
 
-        convertirJSON([
-            "success" => true,
-            "mensaje" => "Ticket eliminado correctamente"
-        ]);
+        responderExito("Ticket eliminado correctamente");
     }
 
     /**
      * ============================================================
-     * SECTION: Validaciones y helpers
+     * SECTION: Validaciones
      * ============================================================
      */
-
-    private function idValido($id)
+    private function validarTicket($json)
     {
-        return is_numeric($id) && $id > 0;
-    }
+        $errores = [];
 
-    private function jsonBody()
-    {
-        return json_decode(file_get_contents("php://input"), true);
-    }
+        if (!is_array($json)) {
+            return ["El body debe ser JSON valido"];
+        }
 
-    private function datosValidos($json)
-    {
-        return is_array($json)
-            && isset($json["titulo"]) && trim($json["titulo"]) !== ""
-            && isset($json["descripcion"]) && trim($json["descripcion"]) !== ""
-            && isset($json["categoria_id"]) && is_numeric($json["categoria_id"])
-            && isset($json["prioridad_id"]) && is_numeric($json["prioridad_id"])
-            && isset($json["estado_id"]) && is_numeric($json["estado_id"])
-            && isset($json["solicitante_id"]) && is_numeric($json["solicitante_id"]);
+        if (!campoTextoValido($json, "titulo")) {
+            $errores[] = "El campo titulo es obligatorio";
+        }
+
+        if (!campoTextoValido($json, "descripcion")) {
+            $errores[] = "El campo descripcion es obligatorio";
+        }
+
+        foreach (["categoria_id", "prioridad_id", "estado_id", "solicitante_id"] as $campo) {
+            if (!campoNumericoValido($json, $campo)) {
+                $errores[] = "El campo $campo es obligatorio y debe ser numerico";
+            }
+        }
+
+        if (isset($json["tecnico_id"]) && $json["tecnico_id"] !== null && $json["tecnico_id"] !== "" && !is_numeric($json["tecnico_id"])) {
+            $errores[] = "El campo tecnico_id debe ser numerico o null";
+        }
+
+        return $errores;
     }
 
     private function crearModelo($json)
@@ -170,18 +150,12 @@ class TicketController
         $ticket = new Ticket();
         $ticket->setTitulo(trim($json["titulo"]));
         $ticket->setDescripcion(trim($json["descripcion"]));
-        $ticket->setCategoriaId($json["categoria_id"]);
-        $ticket->setPrioridadId($json["prioridad_id"]);
-        $ticket->setEstadoId($json["estado_id"]);
-        $ticket->setSolicitanteId($json["solicitante_id"]);
+        $ticket->setCategoriaId((int) $json["categoria_id"]);
+        $ticket->setPrioridadId((int) $json["prioridad_id"]);
+        $ticket->setEstadoId((int) $json["estado_id"]);
+        $ticket->setSolicitanteId((int) $json["solicitante_id"]);
         $ticket->setTecnicoId(isset($json["tecnico_id"]) && $json["tecnico_id"] !== "" ? $json["tecnico_id"] : null);
 
         return $ticket;
-    }
-
-    private function respuestaError($codigo, $mensaje)
-    {
-        http_response_code($codigo);
-        convertirJSON(["error" => $mensaje]);
     }
 }

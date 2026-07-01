@@ -1,17 +1,19 @@
 <?php
 require_once __DIR__ . '/../controllers/rolController.php';
 
+/**
+ * ============================================================
+ * SECTION: Rutas de roles
+ * ============================================================
+ */
+
 $controlador = new RolController();
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 
 switch ($metodo) {
     case 'GET':
-        if ($id != null) {
-            $controlador->getRol($id);
-        } else {
-            $controlador->listaRoles();
-        }
+        $id != null ? $controlador->getRol($id) : $controlador->listaRoles();
         break;
 
     case 'POST':
@@ -27,6 +29,5 @@ switch ($metodo) {
         break;
 
     default:
-        http_response_code(405);
-        echo json_encode(["error" => "Opcion no permitida"]);
+        responderError(405, "Metodo no permitido");
 }

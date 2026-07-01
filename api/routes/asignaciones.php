@@ -41,6 +41,5 @@ switch ($metodo) {
         break;
 
     default:
-        http_response_code(405);
-        echo json_encode(["error" => "Opcion no permitida"]);
+        responderError(405, "Metodo no permitido");
 }

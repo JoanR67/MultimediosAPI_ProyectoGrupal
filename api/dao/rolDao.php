@@ -2,6 +2,13 @@
 require_once __DIR__ . "/../config/Conexion.php";
 require_once __DIR__ . "/../models/rol.php";
 
+/**
+ * ============================================================
+ * SECTION: DAO de roles
+ * ============================================================
+ *
+ * Gestiona las consultas SQL de la tabla `roles`.
+ */
 class RolDAO
 {
     private $conexion;
@@ -14,9 +21,10 @@ class RolDAO
 
     public function listaRoles()
     {
-        $sql = "SELECT * FROM roles";
+        $sql = "SELECT * FROM roles ORDER BY id";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute();
+
         return $preparado->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -25,17 +33,18 @@ class RolDAO
         $sql = "SELECT * FROM roles WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
+
         return $preparado->fetch(PDO::FETCH_ASSOC);
     }
 
     public function createRol(Rol $rol)
     {
         try {
-            $query = "INSERT INTO roles (nombre) VALUES (?)";
-            $preparado = $this->conexion->prepare($query);
+            $sql = "INSERT INTO roles (nombre) VALUES (?)";
+            $preparado = $this->conexion->prepare($sql);
+
             return $preparado->execute([$rol->getNombre()]);
         } catch (PDOException $e) {
-            echo "Error al crear rol: " . $e->getMessage();
             return false;
         }
     }
@@ -43,14 +52,11 @@ class RolDAO
     public function updateRol(Rol $rol)
     {
         try {
-            $query = "UPDATE roles SET nombre = ? WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute([
-                $rol->getNombre(),
-                $rol->getId()
-            ]);
+            $sql = "UPDATE roles SET nombre = ? WHERE id = ?";
+            $preparado = $this->conexion->prepare($sql);
+
+            return $preparado->execute([$rol->getNombre(), $rol->getId()]);
         } catch (PDOException $e) {
-            echo "Error al actualizar rol: " . $e->getMessage();
             return false;
         }
     }
@@ -58,11 +64,11 @@ class RolDAO
     public function deleteRol($id)
     {
         try {
-            $query = "DELETE FROM roles WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
+            $sql = "DELETE FROM roles WHERE id = ?";
+            $preparado = $this->conexion->prepare($sql);
+
             return $preparado->execute([$id]);
         } catch (PDOException $e) {
-            echo "Error al eliminar rol: " . $e->getMessage();
             return false;
         }
     }

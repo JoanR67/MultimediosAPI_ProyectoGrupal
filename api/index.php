@@ -19,6 +19,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
+require_once __DIR__ . '/views/respuesta.php';
 
 /**
  * ============================================================
@@ -43,8 +44,7 @@ $rutas = [
 ];
 
 if (!isset($rutas[$recurso])) {
-    http_response_code(404);
-    echo json_encode(["error" => "Recurso no encontrado"]);
+    responderError(404, "Recurso no encontrado");
     exit;
 }
 

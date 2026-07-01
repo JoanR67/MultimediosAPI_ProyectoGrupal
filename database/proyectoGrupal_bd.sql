@@ -120,9 +120,9 @@ INSERT INTO roles (nombre) VALUES
 
 -- Usuarios genericos (password de ejemplo: "123456")
 INSERT INTO usuarios (nombre, email, password, rol_id) VALUES
-    ('Usuario Administrador', 'admin@correo.com',   '123456', 1),
-    ('Usuario Tecnico',       'tecnico@correo.com', '123456', 2),
-    ('Usuario Solicitante',   'usuario@correo.com', '123456', 3);
+    ('Usuario Administrador', 'admin@correo.com',   '$2y$10$zHYv1rBtBMYh1UWZzxrJc.6ZOvbxoLIKVEWnsvnc42D6i5NNYa50W', 1),
+    ('Usuario Tecnico',       'tecnico@correo.com', '$2y$10$kkIH4jvQptH0o1eiOfM.Ae9qfgTL7KE5I52KMYI1Wzjl6WUtQr54C', 2),
+    ('Usuario Solicitante',   'usuario@correo.com', '$2y$10$2IZ31pwLpd4OLrwXPVfUWOXxqhvgCN7SXFrl6kOTPQNehR/hcs422', 3);
 
 INSERT INTO categorias (nombre) VALUES
     ('Hardware'), ('Software'), ('Redes'), ('Cuentas y accesos'), ('Otros');

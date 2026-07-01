@@ -2,6 +2,13 @@
 require_once __DIR__ . "/../views/respuesta.php";
 require_once __DIR__ . "/../dao/categoriaDao.php";
 
+/**
+ * ============================================================
+ * SECTION: Controlador de categorias
+ * ============================================================
+ *
+ * Maneja el CRUD del catalogo de categorias de tickets.
+ */
 class CategoriaController
 {
     private $dao;
@@ -13,116 +20,94 @@ class CategoriaController
 
     public function listaCategorias()
     {
-        convertirJSON($this->dao->listaCategorias());
+        responderJSON($this->dao->listaCategorias());
     }
 
     public function getCategoria($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         $categoria = $this->dao->getCategoria($id);
 
         if (!$categoria) {
-            http_response_code(404);
-            convertirJSON(["error" => "Categoria no encontrada"]);
+            responderError(404, "Categoria no encontrada");
             return;
         }
 
-        convertirJSON($categoria);
+        responderJSON($categoria);
     }
 
     public function createCategoria()
     {
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!campoTextoValido($json, "nombre")) {
+            responderError(400, "El campo nombre es obligatorio");
             return;
         }
 
         $categoria = new Categoria();
         $categoria->setNombre(trim($json["nombre"]));
 
-        $resultado = $this->dao->createCategoria($categoria);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "Ya existe una categoria con ese nombre"]);
+        if (!$this->dao->createCategoria($categoria)) {
+            responderError(409, "No se pudo crear la categoria. Puede que ya exista.");
             return;
         }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Categoria creada correctamente", [], 201);
     }
 
     public function updateCategoria($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getCategoria($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Categoria no encontrada"]);
+        if (!$this->dao->getCategoria($id)) {
+            responderError(404, "Categoria no encontrada");
             return;
         }
 
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!campoTextoValido($json, "nombre")) {
+            responderError(400, "El campo nombre es obligatorio");
             return;
         }
 
         $categoria = new Categoria();
-        $categoria->setId($id);
+        $categoria->setId((int) $id);
         $categoria->setNombre(trim($json["nombre"]));
 
-        $resultado = $this->dao->updateCategoria($categoria);
+        if (!$this->dao->updateCategoria($categoria)) {
+            responderError(409, "No se pudo actualizar la categoria. Puede que el nombre ya exista.");
+            return;
+        }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Categoria actualizada correctamente");
     }
 
     public function deleteCategoria($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getCategoria($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Categoria no encontrada"]);
+        if (!$this->dao->getCategoria($id)) {
+            responderError(404, "Categoria no encontrada");
             return;
         }
 
-        $resultado = $this->dao->deleteCategoria($id);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "No se puede eliminar, la categoria está en uso por algún ticket"]);
+        if (!$this->dao->deleteCategoria($id)) {
+            responderError(409, "No se puede eliminar porque la categoria esta en uso");
             return;
         }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Categoria eliminada correctamente");
     }
 }

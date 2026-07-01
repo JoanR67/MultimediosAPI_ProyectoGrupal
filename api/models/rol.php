@@ -1,10 +1,20 @@
 <?php
 
+/**
+ * ============================================================
+ * SECTION: Modelo Rol
+ * ============================================================
+ *
+ * Representa la tabla `roles`.
+ */
 class Rol
 {
     private $id;
     private $nombre;
 
+    /**
+     * Crea un rol con valores opcionales.
+     */
     public function __construct($id = null, $nombre = null)
     {
         $this->id = $id;

@@ -1,17 +1,19 @@
 <?php
 require_once __DIR__ . '/../controllers/estadoController.php';
 
+/**
+ * ============================================================
+ * SECTION: Rutas de estados
+ * ============================================================
+ */
+
 $controlador = new EstadoController();
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 
 switch ($metodo) {
     case 'GET':
-        if ($id != null) {
-            $controlador->getEstado($id);
-        } else {
-            $controlador->listaEstados();
-        }
+        $id != null ? $controlador->getEstado($id) : $controlador->listaEstados();
         break;
 
     case 'POST':
@@ -27,6 +29,5 @@ switch ($metodo) {
         break;
 
     default:
-        http_response_code(405);
-        echo json_encode(["error" => "Opcion no permitida"]);
+        responderError(405, "Metodo no permitido");
 }

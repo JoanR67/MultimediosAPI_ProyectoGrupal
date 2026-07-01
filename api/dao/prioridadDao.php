@@ -2,6 +2,13 @@
 require_once __DIR__ . "/../config/Conexion.php";
 require_once __DIR__ . "/../models/prioridad.php";
 
+/**
+ * ============================================================
+ * SECTION: DAO de prioridades
+ * ============================================================
+ *
+ * Gestiona las consultas SQL de la tabla `prioridades`.
+ */
 class PrioridadDAO
 {
     private $conexion;
@@ -14,9 +21,10 @@ class PrioridadDAO
 
     public function listaPrioridades()
     {
-        $sql = "SELECT * FROM prioridades";
+        $sql = "SELECT * FROM prioridades ORDER BY nivel, id";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute();
+
         return $preparado->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -25,20 +33,18 @@ class PrioridadDAO
         $sql = "SELECT * FROM prioridades WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
+
         return $preparado->fetch(PDO::FETCH_ASSOC);
     }
 
     public function createPrioridad(Prioridad $prioridad)
     {
         try {
-            $query = "INSERT INTO prioridades (nombre, nivel) VALUES (?, ?)";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute([
-                $prioridad->getNombre(),
-                $prioridad->getNivel()
-            ]);
+            $sql = "INSERT INTO prioridades (nombre, nivel) VALUES (?, ?)";
+            $preparado = $this->conexion->prepare($sql);
+
+            return $preparado->execute([$prioridad->getNombre(), $prioridad->getNivel()]);
         } catch (PDOException $e) {
-            echo "Error al crear prioridad: " . $e->getMessage();
             return false;
         }
     }
@@ -46,15 +52,15 @@ class PrioridadDAO
     public function updatePrioridad(Prioridad $prioridad)
     {
         try {
-            $query = "UPDATE prioridades SET nombre = ?, nivel = ? WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
+            $sql = "UPDATE prioridades SET nombre = ?, nivel = ? WHERE id = ?";
+            $preparado = $this->conexion->prepare($sql);
+
             return $preparado->execute([
                 $prioridad->getNombre(),
                 $prioridad->getNivel(),
                 $prioridad->getId()
             ]);
         } catch (PDOException $e) {
-            echo "Error al actualizar prioridad: " . $e->getMessage();
             return false;
         }
     }
@@ -62,11 +68,11 @@ class PrioridadDAO
     public function deletePrioridad($id)
     {
         try {
-            $query = "DELETE FROM prioridades WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
+            $sql = "DELETE FROM prioridades WHERE id = ?";
+            $preparado = $this->conexion->prepare($sql);
+
             return $preparado->execute([$id]);
         } catch (PDOException $e) {
-            echo "Error al eliminar prioridad: " . $e->getMessage();
             return false;
         }
     }

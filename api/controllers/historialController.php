@@ -7,7 +7,7 @@ require_once __DIR__ . "/../dao/historialDao.php";
  * SECTION: Controlador de historial
  * ============================================================
  *
- * Maneja los registros historicos de cambios hechos a tickets.
+ * Maneja registros historicos de acciones realizadas sobre tickets.
  */
 class HistorialController
 {
@@ -18,165 +18,139 @@ class HistorialController
         $this->dao = new HistorialDAO();
     }
 
-    /**
-     * Lista historial. Permite filtrar por ticket_id.
-     */
     public function listaHistorial($ticket_id = null)
     {
-        convertirJSON($this->dao->listaHistorial($ticket_id));
+        if ($ticket_id !== null && !esIdValido($ticket_id)) {
+            responderError(400, "El filtro ticket_id debe ser un entero positivo");
+            return;
+        }
+
+        responderJSON($this->dao->listaHistorial($ticket_id));
     }
 
-    /**
-     * Devuelve un registro de historial por id.
-     */
     public function getHistorial($id)
     {
-        if (!$this->idValido($id)) {
-            $this->respuestaError(400, "ID invalido");
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         $historial = $this->dao->getHistorial($id);
 
         if (!$historial) {
-            $this->respuestaError(404, "Registro de historial no encontrado");
+            responderError(404, "Registro de historial no encontrado");
             return;
         }
 
-        convertirJSON($historial);
+        responderJSON($historial);
     }
 
-    /**
-     * Crea un registro manual de historial.
-     */
     public function createHistorial()
     {
-        $json = $this->jsonBody();
+        $json = leerJsonBody();
+        $errores = $this->validarHistorial($json);
 
-        if (!$this->datosValidos($json)) {
-            $this->respuestaError(400, "Debe enviar ticket_id, usuario_id y accion");
+        if (!empty($errores)) {
+            responderError(400, "Datos invalidos", $errores);
             return;
         }
 
         $id = $this->dao->createHistorial($this->crearModelo($json));
 
         if (!$id) {
-            $this->respuestaError(400, "No se pudo crear el historial. Revise los ids enviados.");
+            responderError(400, "No se pudo crear el historial. Revise los ids enviados.");
             return;
         }
 
-        http_response_code(201);
-        convertirJSON([
-            "success" => true,
-            "mensaje" => "Historial creado correctamente",
-            "id" => $id
-        ]);
+        responderExito("Historial creado correctamente", ["id" => $id], 201);
     }
 
-    /**
-     * Actualiza un registro de historial.
-     */
     public function updateHistorial($id)
     {
-        if (!$this->idValido($id)) {
-            $this->respuestaError(400, "ID invalido");
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         if (!$this->dao->getHistorial($id)) {
-            $this->respuestaError(404, "Registro de historial no encontrado");
+            responderError(404, "Registro de historial no encontrado");
             return;
         }
 
-        $json = $this->jsonBody();
+        $json = leerJsonBody();
+        $errores = $this->validarHistorial($json);
 
-        if (!$this->datosValidos($json)) {
-            $this->respuestaError(400, "Debe enviar ticket_id, usuario_id y accion");
+        if (!empty($errores)) {
+            responderError(400, "Datos invalidos", $errores);
             return;
         }
 
         $historial = $this->crearModelo($json);
-        $historial->setId($id);
-        $resultado = $this->dao->updateHistorial($historial);
+        $historial->setId((int) $id);
 
-        if (!$resultado) {
-            $this->respuestaError(400, "No se pudo actualizar el historial");
+        if (!$this->dao->updateHistorial($historial)) {
+            responderError(400, "No se pudo actualizar el historial. Revise los ids enviados.");
             return;
         }
 
-        convertirJSON([
-            "success" => true,
-            "mensaje" => "Historial actualizado correctamente"
-        ]);
+        responderExito("Historial actualizado correctamente");
     }
 
-    /**
-     * Elimina un registro de historial por id.
-     */
     public function deleteHistorial($id)
     {
-        if (!$this->idValido($id)) {
-            $this->respuestaError(400, "ID invalido");
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         if (!$this->dao->getHistorial($id)) {
-            $this->respuestaError(404, "Registro de historial no encontrado");
+            responderError(404, "Registro de historial no encontrado");
             return;
         }
 
-        $resultado = $this->dao->deleteHistorial($id);
-
-        if (!$resultado) {
-            $this->respuestaError(400, "No se pudo eliminar el historial");
+        if (!$this->dao->deleteHistorial($id)) {
+            responderError(400, "No se pudo eliminar el historial");
             return;
         }
 
-        convertirJSON([
-            "success" => true,
-            "mensaje" => "Historial eliminado correctamente"
-        ]);
+        responderExito("Historial eliminado correctamente");
     }
 
     /**
      * ============================================================
-     * SECTION: Validaciones y helpers
+     * SECTION: Validaciones
      * ============================================================
      */
-
-    private function idValido($id)
+    private function validarHistorial($json)
     {
-        return is_numeric($id) && $id > 0;
-    }
+        $errores = [];
 
-    private function jsonBody()
-    {
-        return json_decode(file_get_contents("php://input"), true);
-    }
+        if (!is_array($json)) {
+            return ["El body debe ser JSON valido"];
+        }
 
-    private function datosValidos($json)
-    {
-        return is_array($json)
-            && isset($json["ticket_id"]) && is_numeric($json["ticket_id"])
-            && isset($json["usuario_id"]) && is_numeric($json["usuario_id"])
-            && isset($json["accion"]) && trim($json["accion"]) !== "";
+        foreach (["ticket_id", "usuario_id"] as $campo) {
+            if (!campoNumericoValido($json, $campo)) {
+                $errores[] = "El campo $campo es obligatorio y debe ser numerico";
+            }
+        }
+
+        if (!campoTextoValido($json, "accion")) {
+            $errores[] = "El campo accion es obligatorio";
+        }
+
+        return $errores;
     }
 
     private function crearModelo($json)
     {
         $historial = new Historial();
-        $historial->setTicketId($json["ticket_id"]);
-        $historial->setUsuarioId($json["usuario_id"]);
+        $historial->setTicketId((int) $json["ticket_id"]);
+        $historial->setUsuarioId((int) $json["usuario_id"]);
         $historial->setAccion(trim($json["accion"]));
         $historial->setValorAnterior(isset($json["valor_anterior"]) ? $json["valor_anterior"] : null);
         $historial->setValorNuevo(isset($json["valor_nuevo"]) ? $json["valor_nuevo"] : null);
 
         return $historial;
-    }
-
-    private function respuestaError($codigo, $mensaje)
-    {
-        http_response_code($codigo);
-        convertirJSON(["error" => $mensaje]);
     }
 }

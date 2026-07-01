@@ -1,11 +1,21 @@
 <?php
 
+/**
+ * ============================================================
+ * SECTION: Modelo Prioridad
+ * ============================================================
+ *
+ * Representa la tabla `prioridades`.
+ */
 class Prioridad
 {
     private $id;
     private $nombre;
     private $nivel;
 
+    /**
+     * Crea una prioridad con valores opcionales.
+     */
     public function __construct($id = null, $nombre = null, $nivel = null)
     {
         $this->id = $id;

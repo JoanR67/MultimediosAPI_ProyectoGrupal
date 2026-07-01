@@ -2,6 +2,13 @@
 require_once __DIR__ . "/../views/respuesta.php";
 require_once __DIR__ . "/../dao/estadoDao.php";
 
+/**
+ * ============================================================
+ * SECTION: Controlador de estados
+ * ============================================================
+ *
+ * Maneja el CRUD del catalogo de estados del ticket.
+ */
 class EstadoController
 {
     private $dao;
@@ -13,116 +20,94 @@ class EstadoController
 
     public function listaEstados()
     {
-        convertirJSON($this->dao->listaEstados());
+        responderJSON($this->dao->listaEstados());
     }
 
     public function getEstado($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         $estado = $this->dao->getEstado($id);
 
         if (!$estado) {
-            http_response_code(404);
-            convertirJSON(["error" => "Estado no encontrado"]);
+            responderError(404, "Estado no encontrado");
             return;
         }
 
-        convertirJSON($estado);
+        responderJSON($estado);
     }
 
     public function createEstado()
     {
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!campoTextoValido($json, "nombre")) {
+            responderError(400, "El campo nombre es obligatorio");
             return;
         }
 
         $estado = new Estado();
         $estado->setNombre(trim($json["nombre"]));
 
-        $resultado = $this->dao->createEstado($estado);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "Ya existe un estado con ese nombre"]);
+        if (!$this->dao->createEstado($estado)) {
+            responderError(409, "No se pudo crear el estado. Puede que ya exista.");
             return;
         }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Estado creado correctamente", [], 201);
     }
 
     public function updateEstado($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getEstado($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Estado no encontrado"]);
+        if (!$this->dao->getEstado($id)) {
+            responderError(404, "Estado no encontrado");
             return;
         }
 
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!campoTextoValido($json, "nombre")) {
+            responderError(400, "El campo nombre es obligatorio");
             return;
         }
 
         $estado = new Estado();
-        $estado->setId($id);
+        $estado->setId((int) $id);
         $estado->setNombre(trim($json["nombre"]));
 
-        $resultado = $this->dao->updateEstado($estado);
+        if (!$this->dao->updateEstado($estado)) {
+            responderError(409, "No se pudo actualizar el estado. Puede que el nombre ya exista.");
+            return;
+        }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Estado actualizado correctamente");
     }
 
     public function deleteEstado($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getEstado($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Estado no encontrado"]);
+        if (!$this->dao->getEstado($id)) {
+            responderError(404, "Estado no encontrado");
             return;
         }
 
-        $resultado = $this->dao->deleteEstado($id);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "No se puede eliminar, el estado está en uso por algún ticket"]);
+        if (!$this->dao->deleteEstado($id)) {
+            responderError(409, "No se puede eliminar porque el estado esta en uso");
             return;
         }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Estado eliminado correctamente");
     }
 }

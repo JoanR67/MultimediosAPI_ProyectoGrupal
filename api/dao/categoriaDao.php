@@ -2,6 +2,13 @@
 require_once __DIR__ . "/../config/Conexion.php";
 require_once __DIR__ . "/../models/categoria.php";
 
+/**
+ * ============================================================
+ * SECTION: DAO de categorias
+ * ============================================================
+ *
+ * Gestiona las consultas SQL de la tabla `categorias`.
+ */
 class CategoriaDAO
 {
     private $conexion;
@@ -14,9 +21,10 @@ class CategoriaDAO
 
     public function listaCategorias()
     {
-        $sql = "SELECT * FROM categorias";
+        $sql = "SELECT * FROM categorias ORDER BY id";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute();
+
         return $preparado->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -25,17 +33,18 @@ class CategoriaDAO
         $sql = "SELECT * FROM categorias WHERE id = ?";
         $preparado = $this->conexion->prepare($sql);
         $preparado->execute([$id]);
+
         return $preparado->fetch(PDO::FETCH_ASSOC);
     }
 
     public function createCategoria(Categoria $categoria)
     {
         try {
-            $query = "INSERT INTO categorias (nombre) VALUES (?)";
-            $preparado = $this->conexion->prepare($query);
+            $sql = "INSERT INTO categorias (nombre) VALUES (?)";
+            $preparado = $this->conexion->prepare($sql);
+
             return $preparado->execute([$categoria->getNombre()]);
         } catch (PDOException $e) {
-            echo "Error al crear categoria: " . $e->getMessage();
             return false;
         }
     }
@@ -43,14 +52,11 @@ class CategoriaDAO
     public function updateCategoria(Categoria $categoria)
     {
         try {
-            $query = "UPDATE categorias SET nombre = ? WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
-            return $preparado->execute([
-                $categoria->getNombre(),
-                $categoria->getId()
-            ]);
+            $sql = "UPDATE categorias SET nombre = ? WHERE id = ?";
+            $preparado = $this->conexion->prepare($sql);
+
+            return $preparado->execute([$categoria->getNombre(), $categoria->getId()]);
         } catch (PDOException $e) {
-            echo "Error al actualizar categoria: " . $e->getMessage();
             return false;
         }
     }
@@ -58,11 +64,11 @@ class CategoriaDAO
     public function deleteCategoria($id)
     {
         try {
-            $query = "DELETE FROM categorias WHERE id = ?";
-            $preparado = $this->conexion->prepare($query);
+            $sql = "DELETE FROM categorias WHERE id = ?";
+            $preparado = $this->conexion->prepare($sql);
+
             return $preparado->execute([$id]);
         } catch (PDOException $e) {
-            echo "Error al eliminar categoria: " . $e->getMessage();
             return false;
         }
     }

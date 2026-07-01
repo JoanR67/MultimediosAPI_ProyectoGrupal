@@ -2,6 +2,13 @@
 require_once __DIR__ . "/../views/respuesta.php";
 require_once __DIR__ . "/../dao/rolDao.php";
 
+/**
+ * ============================================================
+ * SECTION: Controlador de roles
+ * ============================================================
+ *
+ * Maneja el CRUD del catalogo de roles.
+ */
 class RolController
 {
     private $dao;
@@ -13,116 +20,94 @@ class RolController
 
     public function listaRoles()
     {
-        convertirJSON($this->dao->listaRoles());
+        responderJSON($this->dao->listaRoles());
     }
 
     public function getRol($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         $rol = $this->dao->getRol($id);
 
         if (!$rol) {
-            http_response_code(404);
-            convertirJSON(["error" => "Rol no encontrado"]);
+            responderError(404, "Rol no encontrado");
             return;
         }
 
-        convertirJSON($rol);
+        responderJSON($rol);
     }
 
     public function createRol()
     {
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!campoTextoValido($json, "nombre")) {
+            responderError(400, "El campo nombre es obligatorio");
             return;
         }
 
         $rol = new Rol();
         $rol->setNombre(trim($json["nombre"]));
 
-        $resultado = $this->dao->createRol($rol);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "Ya existe un rol con ese nombre"]);
+        if (!$this->dao->createRol($rol)) {
+            responderError(409, "No se pudo crear el rol. Puede que ya exista.");
             return;
         }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Rol creado correctamente", [], 201);
     }
 
     public function updateRol($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getRol($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Rol no encontrado"]);
+        if (!$this->dao->getRol($id)) {
+            responderError(404, "Rol no encontrado");
             return;
         }
 
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!campoTextoValido($json, "nombre")) {
+            responderError(400, "El campo nombre es obligatorio");
             return;
         }
 
         $rol = new Rol();
-        $rol->setId($id);
+        $rol->setId((int) $id);
         $rol->setNombre(trim($json["nombre"]));
 
-        $resultado = $this->dao->updateRol($rol);
+        if (!$this->dao->updateRol($rol)) {
+            responderError(409, "No se pudo actualizar el rol. Puede que el nombre ya exista.");
+            return;
+        }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Rol actualizado correctamente");
     }
 
     public function deleteRol($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getRol($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Rol no encontrado"]);
+        if (!$this->dao->getRol($id)) {
+            responderError(404, "Rol no encontrado");
             return;
         }
 
-        $resultado = $this->dao->deleteRol($id);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "No se puede eliminar, el rol está en uso por algún usuario"]);
+        if (!$this->dao->deleteRol($id)) {
+            responderError(409, "No se puede eliminar porque el rol esta en uso");
             return;
         }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Rol eliminado correctamente");
     }
 }

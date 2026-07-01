@@ -1,10 +1,20 @@
 <?php
 
+/**
+ * ============================================================
+ * SECTION: Modelo Categoria
+ * ============================================================
+ *
+ * Representa la tabla `categorias`.
+ */
 class Categoria
 {
     private $id;
     private $nombre;
 
+    /**
+     * Crea una categoria con valores opcionales.
+     */
     public function __construct($id = null, $nombre = null)
     {
         $this->id = $id;

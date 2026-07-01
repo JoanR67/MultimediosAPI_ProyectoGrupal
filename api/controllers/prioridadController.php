@@ -2,6 +2,13 @@
 require_once __DIR__ . "/../views/respuesta.php";
 require_once __DIR__ . "/../dao/prioridadDao.php";
 
+/**
+ * ============================================================
+ * SECTION: Controlador de prioridades
+ * ============================================================
+ *
+ * Maneja el CRUD del catalogo de prioridades.
+ */
 class PrioridadController
 {
     private $dao;
@@ -13,130 +20,127 @@ class PrioridadController
 
     public function listaPrioridades()
     {
-        convertirJSON($this->dao->listaPrioridades());
+        responderJSON($this->dao->listaPrioridades());
     }
 
     public function getPrioridad($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
         $prioridad = $this->dao->getPrioridad($id);
 
         if (!$prioridad) {
-            http_response_code(404);
-            convertirJSON(["error" => "Prioridad no encontrada"]);
+            responderError(404, "Prioridad no encontrada");
             return;
         }
 
-        convertirJSON($prioridad);
+        responderJSON($prioridad);
     }
 
     public function createPrioridad()
     {
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
+        $errores = $this->validarPrioridad($json);
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!empty($errores)) {
+            responderError(400, "Datos invalidos", $errores);
             return;
         }
 
-        if (!isset($json["nivel"]) || !is_numeric($json["nivel"])) {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nivel es obligatorio y debe ser numérico"]);
+        $prioridad = $this->crearModelo($json);
+
+        if (!$this->dao->createPrioridad($prioridad)) {
+            responderError(409, "No se pudo crear la prioridad. Puede que ya exista.");
             return;
         }
 
-        $prioridad = new Prioridad();
-        $prioridad->setNombre(trim($json["nombre"]));
-        $prioridad->setNivel($json["nivel"]);
-
-        $resultado = $this->dao->createPrioridad($prioridad);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "Ya existe una prioridad con ese nombre"]);
-            return;
-        }
-
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Prioridad creada correctamente", [], 201);
     }
 
     public function updatePrioridad($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getPrioridad($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Prioridad no encontrada"]);
+        if (!$this->dao->getPrioridad($id)) {
+            responderError(404, "Prioridad no encontrada");
             return;
         }
 
-        $json = json_decode(file_get_contents("php://input"), true);
+        $json = leerJsonBody();
+        $errores = $this->validarPrioridad($json);
 
-        if (!isset($json["nombre"]) || trim($json["nombre"]) === "") {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nombre es obligatorio"]);
+        if (!empty($errores)) {
+            responderError(400, "Datos invalidos", $errores);
             return;
         }
 
-        if (!isset($json["nivel"]) || !is_numeric($json["nivel"])) {
-            http_response_code(400);
-            convertirJSON(["error" => "El campo nivel es obligatorio y debe ser numérico"]);
+        $prioridad = $this->crearModelo($json);
+        $prioridad->setId((int) $id);
+
+        if (!$this->dao->updatePrioridad($prioridad)) {
+            responderError(409, "No se pudo actualizar la prioridad. Puede que el nombre ya exista.");
             return;
         }
 
-        $prioridad = new Prioridad();
-        $prioridad->setId($id);
-        $prioridad->setNombre(trim($json["nombre"]));
-        $prioridad->setNivel($json["nivel"]);
-
-        $resultado = $this->dao->updatePrioridad($prioridad);
-
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Prioridad actualizada correctamente");
     }
 
     public function deletePrioridad($id)
     {
-        if (!is_numeric($id)) {
-            http_response_code(400);
-            convertirJSON(["error" => "ID inválido"]);
+        if (!esIdValido($id)) {
+            responderError(400, "ID invalido");
             return;
         }
 
-        $existente = $this->dao->getPrioridad($id);
-        if (!$existente) {
-            http_response_code(404);
-            convertirJSON(["error" => "Prioridad no encontrada"]);
+        if (!$this->dao->getPrioridad($id)) {
+            responderError(404, "Prioridad no encontrada");
             return;
         }
 
-        $resultado = $this->dao->deletePrioridad($id);
-
-        if (!$resultado) {
-            http_response_code(409);
-            convertirJSON(["error" => "No se puede eliminar, la prioridad está en uso por algún ticket"]);
+        if (!$this->dao->deletePrioridad($id)) {
+            responderError(409, "No se puede eliminar porque la prioridad esta en uso");
             return;
         }
 
-        convertirJSON([
-            "code" => "200",
-            "success" => $resultado
-        ]);
+        responderExito("Prioridad eliminada correctamente");
+    }
+
+    /**
+     * ============================================================
+     * SECTION: Validaciones
+     * ============================================================
+     */
+    private function validarPrioridad($json)
+    {
+        $errores = [];
+
+        if (!is_array($json)) {
+            return ["El body debe ser JSON valido"];
+        }
+
+        if (!campoTextoValido($json, "nombre")) {
+            $errores[] = "El campo nombre es obligatorio";
+        }
+
+        if (!campoNumericoValido($json, "nivel")) {
+            $errores[] = "El campo nivel es obligatorio y debe ser numerico";
+        }
+
+        return $errores;
+    }
+
+    private function crearModelo($json)
+    {
+        $prioridad = new Prioridad();
+        $prioridad->setNombre(trim($json["nombre"]));
+        $prioridad->setNivel((int) $json["nivel"]);
+
+        return $prioridad;
     }
 }

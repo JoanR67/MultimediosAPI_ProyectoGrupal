@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * ============================================================
+ * SECTION: Modelo Usuario
+ * ============================================================
+ *
+ * Representa la tabla `usuarios`.
+ */
 class Usuario
 {
     private $id;
@@ -8,13 +15,11 @@ class Usuario
     private $password;
     private $rol_id;
 
-    public function __construct(
-        $id = null,
-        $nombre = null,
-        $email = null,
-        $password = null,
-        $rol_id = null
-    ) {
+    /**
+     * Crea un usuario con valores opcionales.
+     */
+    public function __construct($id = null, $nombre = null, $email = null, $password = null, $rol_id = null)
+    {
         $this->id = $id;
         $this->nombre = $nombre;
         $this->email = $email;

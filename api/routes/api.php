@@ -1,6 +1,20 @@
 <?php
-
 require_once __DIR__ . '/../controllers/ticketController.php';
+
+/**
+ * ============================================================
+ * SECTION: Rutas de tickets
+ * ============================================================
+ *
+ * Endpoints:
+ * - GET    /?recurso=tickets
+ * - GET    /?recurso=tickets&id=1
+ * - POST   /?recurso=tickets
+ * - PUT    /?recurso=tickets&id=1
+ * - DELETE /?recurso=tickets&id=1
+ *
+ * Si no se envia `recurso`, index.php usa tickets por defecto.
+ */
 
 $controlador = new TicketController();
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -29,9 +43,5 @@ switch ($metodo) {
 
     default:
         http_response_code(405);
-        echo json_encode(
-            [
-                "error" => "Opcion no permitida"
-            ]
-        );
+        echo json_encode(["error" => "Opcion no permitida"]);
 }

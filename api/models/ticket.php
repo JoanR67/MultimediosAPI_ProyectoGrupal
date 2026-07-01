@@ -1,6 +1,12 @@
 <?php
 
-
+/**
+ * ============================================================
+ * SECTION: Modelo Ticket
+ * ============================================================
+ *
+ * Representa la tabla principal `tickets`.
+ */
 class Ticket
 {
     private $id;
@@ -12,6 +18,9 @@ class Ticket
     private $solicitante_id;
     private $tecnico_id;
 
+    /**
+     * Crea un ticket con valores opcionales.
+     */
     public function __construct(
         $id = null,
         $titulo = null,

@@ -137,3 +137,15 @@ INSERT INTO tickets (titulo, descripcion, categoria_id, prioridad_id, estado_id,
     ('No enciende la computadora', 'La PC del laboratorio 3 no enciende desde la manana.', 1, 3, 1, 3, NULL),
     ('Error al abrir el sistema contable', 'El sistema muestra error 500 al iniciar sesion.', 2, 4, 2, 3, 2),
     ('Sin acceso a internet en oficina 204', 'No hay conexion de red cableada ni WiFi.', 3, 2, 3, 3, 2);
+
+-- Asignacion inicial de ejemplo
+INSERT INTO asignaciones (ticket_id, tecnico_id, asignado_por) VALUES
+    (2, 2, 1);
+
+-- Comentario inicial de ejemplo
+INSERT INTO comentarios (ticket_id, usuario_id, contenido) VALUES
+    (2, 2, 'Se revisara el error reportado en el sistema contable.');
+
+-- Historial inicial de ejemplo
+INSERT INTO historial (ticket_id, usuario_id, accion, valor_anterior, valor_nuevo) VALUES
+    (2, 1, 'Asignacion inicial de tecnico', NULL, '2');

@@ -1,0 +1,560 @@
+{
+  "info": {
+    "_postman_id": "56db2015-9c1f-4a06-b4d7-2fb628c3ec01",
+    "name": "Multimedios API - Tickets",
+    "description": "Coleccion para probar tickets, asignaciones, comentarios e historial.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "ticket_id",
+      "value": "1"
+    },
+    {
+      "key": "ticket_crud_id",
+      "value": ""
+    },
+    {
+      "key": "asignacion_id",
+      "value": ""
+    },
+    {
+      "key": "comentario_id",
+      "value": ""
+    },
+    {
+      "key": "historial_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "GET - Listar tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=tickets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "tickets"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Crear ticket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.id) pm.collectionVariables.set('ticket_crud_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Ticket creado desde Postman\",\n  \"descripcion\": \"Prueba del CRUD de tickets\",\n  \"categoria_id\": 1,\n  \"prioridad_id\": 2,\n  \"estado_id\": 1,\n  \"solicitante_id\": 3,\n  \"tecnico_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=tickets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "tickets"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Actualizar ticket creado",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Ticket actualizado desde Postman\",\n  \"descripcion\": \"Prueba del endpoint PUT\",\n  \"categoria_id\": 2,\n  \"prioridad_id\": 3,\n  \"estado_id\": 2,\n  \"solicitante_id\": 3,\n  \"tecnico_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=tickets&id={{ticket_crud_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "tickets"
+                },
+                {
+                  "key": "id",
+                  "value": "{{ticket_crud_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar ticket creado",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=tickets&id={{ticket_crud_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "tickets"
+                },
+                {
+                  "key": "id",
+                  "value": "{{ticket_crud_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Asignaciones",
+      "item": [
+        {
+          "name": "GET - Listar asignaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=asignaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "asignaciones"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Crear asignacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.id) pm.collectionVariables.set('asignacion_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket_id\": {{ticket_id}},\n  \"tecnico_id\": 2,\n  \"asignado_por\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=asignaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "asignaciones"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Actualizar asignacion",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket_id\": {{ticket_id}},\n  \"tecnico_id\": 2,\n  \"asignado_por\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=asignaciones&id={{asignacion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "asignaciones"
+                },
+                {
+                  "key": "id",
+                  "value": "{{asignacion_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar asignacion",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=asignaciones&id={{asignacion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "asignaciones"
+                },
+                {
+                  "key": "id",
+                  "value": "{{asignacion_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comentarios",
+      "item": [
+        {
+          "name": "GET - Listar comentarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=comentarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "comentarios"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Crear comentario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.id) pm.collectionVariables.set('comentario_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket_id\": {{ticket_id}},\n  \"usuario_id\": 2,\n  \"contenido\": \"Comentario creado desde Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=comentarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "comentarios"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Actualizar comentario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket_id\": {{ticket_id}},\n  \"usuario_id\": 2,\n  \"contenido\": \"Comentario actualizado desde Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=comentarios&id={{comentario_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "comentarios"
+                },
+                {
+                  "key": "id",
+                  "value": "{{comentario_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar comentario",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=comentarios&id={{comentario_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "comentarios"
+                },
+                {
+                  "key": "id",
+                  "value": "{{comentario_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Historial",
+      "item": [
+        {
+          "name": "GET - Listar historial",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=historial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "historial"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Crear historial",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.id) pm.collectionVariables.set('historial_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket_id\": {{ticket_id}},\n  \"usuario_id\": 2,\n  \"accion\": \"Prueba desde Postman\",\n  \"valor_anterior\": \"Pendiente\",\n  \"valor_nuevo\": \"En proceso\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=historial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "historial"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Actualizar historial",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket_id\": {{ticket_id}},\n  \"usuario_id\": 2,\n  \"accion\": \"Prueba actualizada desde Postman\",\n  \"valor_anterior\": \"Pendiente\",\n  \"valor_nuevo\": \"Resuelto\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/?recurso=historial&id={{historial_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "historial"
+                },
+                {
+                  "key": "id",
+                  "value": "{{historial_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar historial",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/?recurso=historial&id={{historial_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ],
+              "query": [
+                {
+                  "key": "recurso",
+                  "value": "historial"
+                },
+                {
+                  "key": "id",
+                  "value": "{{historial_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
